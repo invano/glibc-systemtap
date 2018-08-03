@@ -1,4 +1,3 @@
 ifeq ($(subdir),string)
-sysdep_routines += memcpy_neon memcpy_vfp memchr_neon memcpy_arm \
-		   memchr_noneon
+sysdep_routines +=memchr_neon memchr_noneon
 endif

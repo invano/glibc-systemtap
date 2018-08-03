@@ -43,7 +43,7 @@ ifeq ($(subdir),csu)
 gen-as-const-headers += rtld-global-offsets.sym tlsdesc.sym
 aeabi_constants = aeabi_lcsts aeabi_sighandlers aeabi_math
 aeabi_routines = aeabi_assert aeabi_localeconv aeabi_errno_addr \
-		 aeabi_mb_cur_max aeabi_atexit aeabi_memclr aeabi_memcpy \
+		 aeabi_mb_cur_max aeabi_atexit aeabi_memclr \
 		 aeabi_memmove aeabi_memset \
 		 aeabi_read_tp libc-aeabi_read_tp
 
