@@ -75,18 +75,23 @@ def add_probe(file, cproto):
     fcontent.insert(0, MARKER)
     fcontent.insert(1, STAP_HEADER)
 
-    probe = "LIBC_PROBE( %s, %d" % (cproto.realfunc, len(cproto.args))
+    probe = "LIBC_PROBE( %s, %d" % (cproto.func, len(cproto.args))
     for arg in cproto.args:
         probe += ", %s" % arg
     probe += " )\n"
 
     for i in range(len(fcontent)-1):
-        if cproto.realfunc + " (" in fcontent[i].lower() and fcontent[i+1].strip() == "{":
-            fcontent.insert(i+2, probe)
-            break
+        if cproto.realfunc + " (" in fcontent[i].lower() or cproto.func+" (" in fcontent[i].lower():
+            for j in range(i, len(fcontent)-1):
+                if ")" in fcontent[j] and fcontent[j+1].strip() == "{":
+                    fcontent.insert(j+2, probe)
+                    break
+            else:
+                break
 
-    sys.stdout.writelines(fcontent)
-    exit(1)
+    with open(file, "w") as f:
+        f.writelines(fcontent)
+    print("%s in %s instrumented!" % (cproto.realfunc, file))
 
 def del_probe(file, cproto):
     log.info("Cleaning %s in %s" % (cproto.realfunc, file))
@@ -105,8 +110,9 @@ def del_probe(file, cproto):
             del fcontent[i]
             break
     
-    sys.stdout.writelines(fcontent)
-    exit(1)
+    with open(file, "w") as f:
+        f.writelines(fcontent)
+    print("%s in %s de-instrumented!" % (cproto.realfunc, file))
 
 ADD_PROBE = 1
 DEL_PROBE = 2
