@@ -1,13 +1,15 @@
 #! /bin/env python3
-
 import os
 import sys
 
 import argparse
 import configparser
 import logging as log
+import tempfile
+import shutil
 
 import pycparser
+from git import Repo
 
 MARKER = "/* STAPPED */\n"
 STAP_HEADER = "#include <stap-probe.h>\n"
@@ -115,14 +117,27 @@ def del_probe(file, cproto):
         f.writelines(fcontent)
     print("%s in %s de-instrumented!" % (cproto.realfunc, file))
 
+def emit_patch(file, cproto, repo):
+    log.info("Creating patch file for %s in ./patch/%s" % (cproto.realfunc, file))
+    add_probe(file, cproto)
+
 ADD_PROBE = 1
 DEL_PROBE = 2
+PAT_PROBE = 3
 
 def main(config, action):
 
     folders = config.sections()
     instr = [("../%s/%s.c" % (folder, file), file, config.get(folder, file)) for folder in folders for file in config.options(folder)]
     
+    if action == PAT_PROBE:
+        tempdir = tempfile.mkdtemp()
+        for folder in folders:
+            shutil.copytree(os.path.join("..", folder), os.path.join(tempdir, folder), ignore=shutil.ignore_patterns(".git", "instrumentation"))
+        repo = Repo.init(tempdir)
+        repo.git.add("*")
+        repo.git.commit("-m", "init")
+
     for cfile, func, wantedfunc in instr:
         if not os.path.isfile(cfile):
             print("%s not found!" % cfile)
@@ -134,12 +149,21 @@ def main(config, action):
             add_probe(cfile, CPROTOS[func])
         elif action == DEL_PROBE:
             del_probe(cfile, CPROTOS[func])
+        elif action == PAT_PROBE:
+            cfile = os.path.join(tempdir, cfile[3:])
+            emit_patch(cfile, CPROTOS[func], repo)
+    
+    if action == PAT_PROBE:
+        with open("glibcstap.patch", "w") as f:
+            f.write(repo.git.diff())
+        shutil.rmtree(tempdir)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Libcstapper - systemtap uprobes instrumentation")
     parser.add_argument("-c", "--config", nargs=1, type=str, help="Configuration file with list of functions to instrument")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     parser.add_argument("-r", "--remove", action="store_true", help="Remove instrumentation")
+    parser.add_argument("-p", "--patch", action="store_true", help="Create patch files instead of onsite patching")
     args = parser.parse_args()
     
     if args.verbose:
@@ -157,7 +181,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(config_file)
 
-    if args.remove:
+    if args.patch:
+        main(config, PAT_PROBE)
+    elif args.remove:
         main(config, DEL_PROBE)
     else:
         main(config, ADD_PROBE)
