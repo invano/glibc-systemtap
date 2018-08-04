@@ -155,7 +155,7 @@ def main(config, action):
     
     if action == PAT_PROBE:
         with open("glibcstap.patch", "w") as f:
-            f.write(repo.git.diff())
+            f.write(repo.git.diff()+"\n")
         shutil.rmtree(tempdir)
 
 if __name__ == "__main__":

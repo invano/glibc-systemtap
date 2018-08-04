@@ -46,3 +46,4 @@ core
 *.pyc
 build/
 *.cfg
+glibcstap.patch
