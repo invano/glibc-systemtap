@@ -9,28 +9,6 @@ import logging as log
 
 import pycparser
 
-class ColorPrint:
-
-    @staticmethod
-    def print_fail(message, end = '\n'):
-        sys.stderr.write('\x1b[1;31m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def print_pass(message, end = '\n'):
-        sys.stdout.write('\x1b[1;32m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def print_warn(message, end = '\n'):
-        sys.stderr.write('\x1b[1;33m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def print_info(message, end = '\n'):
-        sys.stdout.write('\x1b[1;34m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def print_bold(message, end = '\n'):
-        sys.stdout.write('\x1b[1;37m' + message.strip() + '\x1b[0m' + end)
-
 CPP_OPTS = [
                 "-Ifake_libc_include",
                 # "-I..",
@@ -85,26 +63,6 @@ def instrument(cfile, func, wantedfunc):
     vf = FunctionParameter(cfile, func)
     vf.visit(ast)
     
-# def instrument(cfile, func):
-    # print ("Analyzing %s" % cfile)
-
-    # content = None
-    # with open(cfile, "r") as f:
-        # content = f.readlines()
-
-    # if not content:
-        # print ("Cannot open %s" % cfile)
-        # return
-
-    # idx = -1
-    # for i in range(len(content)):
-        # if func+" (" in content[i] or func.upper()+" (" in content[i]:
-            # ColorPrint.print_info(content[i])
-            # idx = i
-            # break
-    # if idx == -1:
-        # ColorPrint.print_fail("Cannot find the right function. Inspect manually!")
-
 def main(config):
 
     folders = config.sections()
