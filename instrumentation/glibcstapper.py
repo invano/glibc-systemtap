@@ -24,7 +24,8 @@ CPP_OPTS = [
                 "-Dstrong_alias(x, y)=",
                 "-Dinhibit_loop_to_libcall=",
                 "-Dlibc_hidden_weak(x)=",
-                "-D__THROW="
+                "-D__THROW=",
+                "-DLIBC_PROBE(x,...)="
            ]
 
 ERR_CPP = ["strdup"]
