@@ -67,19 +67,21 @@ class FunctionParameter(pycparser.c_ast.NodeVisitor):
     def visit_FuncDef(self, node):
         name = node.decl.name
         if self.func[::-1] != name[::-1][:len(self.func)]:
-            log.info("Discarding function: %s" % name)
+            log.warning("Discarding function: %s in %s - Add it to config file if needed" % (name, self.file))
             return
         args = [ params.name for params in (node.decl.type.args.params)]
         CPROTOS[self.func] = CProto(self.file, self.func, name, args)
         log.info(CPROTOS[self.func])
 
-def instrument(cfile, func):
+def instrument(cfile, func, wantedfunc):
     log.info("Analyzing %s" % cfile)
     if func not in ERR_CPP:
         ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=CPP_OPTS)
     else:
         ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=ERR_CPP_OPTS)
 
+    if wantedfunc != 'y':
+        func = wantedfunc
     vf = FunctionParameter(cfile, func)
     vf.visit(ast)
     
@@ -106,13 +108,13 @@ def instrument(cfile, func):
 def main(config):
 
     folders = config.sections()
-    instr = [("../%s/%s.c" % (folder, file), file) for folder in folders for file in config.options(folder)]
+    instr = [("../%s/%s.c" % (folder, file), file, config.get(folder, file)) for folder in folders for file in config.options(folder)]
     
-    for cfile, func in instr:
+    for cfile, func, wantedfunc in instr:
         if not os.path.isfile(cfile):
             print("%s not found!" % cfile)
             continue
-        instrument(cfile, func)
+        instrument(cfile, func, wantedfunc)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Libcstapper - systemtap uprobes instrumentation")
