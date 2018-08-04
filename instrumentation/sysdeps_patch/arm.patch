@@ -1,0 +1,3839 @@
+diff --git a/sysdeps/arm/Makefile b/sysdeps/arm/Makefile
+index ad2042b9..19a6ad24 100644
+--- a/sysdeps/arm/Makefile
++++ b/sysdeps/arm/Makefile
+@@ -43,8 +43,7 @@ ifeq ($(subdir),csu)
+ gen-as-const-headers += rtld-global-offsets.sym tlsdesc.sym
+ aeabi_constants = aeabi_lcsts aeabi_sighandlers aeabi_math
+ aeabi_routines = aeabi_assert aeabi_localeconv aeabi_errno_addr \
+-		 aeabi_mb_cur_max aeabi_atexit aeabi_memclr aeabi_memcpy \
+-		 aeabi_memmove aeabi_memset \
++		 aeabi_mb_cur_max aeabi_atexit aeabi_memclr \
+ 		 aeabi_read_tp libc-aeabi_read_tp
+ 
+ sysdep_routines += $(aeabi_constants) $(aeabi_routines)
+diff --git a/sysdeps/arm/aeabi_memcpy.c b/sysdeps/arm/aeabi_memcpy.c
+deleted file mode 100644
+index 2fa91568..00000000
+--- a/sysdeps/arm/aeabi_memcpy.c
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/* Copyright (C) 2005-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <string.h>
+-
+-/* Copy memory like memcpy, but no return value required.  Can't alias
+-   to memcpy because it's not defined in the same translation
+-   unit.  */
+-void
+-__aeabi_memcpy (void *dest, const void *src, size_t n)
+-{
+-  memcpy (dest, src, n);
+-}
+-
+-/* Versions of the above which may assume memory alignment.  */
+-strong_alias (__aeabi_memcpy, __aeabi_memcpy4)
+-strong_alias (__aeabi_memcpy, __aeabi_memcpy8)
+diff --git a/sysdeps/arm/aeabi_memmove.c b/sysdeps/arm/aeabi_memmove.c
+deleted file mode 100644
+index 920ff8e2..00000000
+--- a/sysdeps/arm/aeabi_memmove.c
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/* Copyright (C) 2005-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <string.h>
+-
+-/* Copy memory like memmove, but no return value required.  Can't
+-   alias to memmove because it's not defined in the same translation
+-   unit.  */
+-void
+-__aeabi_memmove (void *dest, const void *src, size_t n)
+-{
+-  memmove (dest, src, n);
+-}
+-
+-/* Versions of the above which may assume memory alignment.  */
+-strong_alias (__aeabi_memmove, __aeabi_memmove4)
+-strong_alias (__aeabi_memmove, __aeabi_memmove8)
+diff --git a/sysdeps/arm/aeabi_memset.c b/sysdeps/arm/aeabi_memset.c
+deleted file mode 100644
+index 4eb990e0..00000000
+--- a/sysdeps/arm/aeabi_memset.c
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* Copyright (C) 2005-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <string.h>
+-
+-/* Set memory like memset, but different argument order and no return
+-   value required.  */
+-void
+-__aeabi_memset (void *dest, size_t n, int c)
+-{
+-  memset (dest, c, n);
+-}
+-
+-/* Versions of the above which may assume memory alignment.  */
+-strong_alias (__aeabi_memset, __aeabi_memset4)
+-strong_alias (__aeabi_memset, __aeabi_memset8)
+diff --git a/sysdeps/arm/armv6/rawmemchr.S b/sysdeps/arm/armv6/rawmemchr.S
+deleted file mode 100644
+index 6c9d6de3..00000000
+--- a/sysdeps/arm/armv6/rawmemchr.S
++++ /dev/null
+@@ -1,105 +0,0 @@
+-/* rawmemchr -- find a byte within an unsized memory block.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY (__rawmemchr)
+-	@ r0 = start of string
+-	@ r1 = character to match
+-	@ returns a pointer to the match, which must be present.
+-	ldrb	r2, [r0]		@ load first byte asap
+-
+-	@ To cater to long strings, we want to search through a few
+-	@ characters until we reach an aligned pointer.  To cater to
+-	@ small strings, we don't want to start doing word operations
+-	@ immediately.  The compromise is a maximum of 16 bytes less
+-	@ whatever is required to end with an aligned pointer.
+-	@ r3 = number of characters to search in alignment loop
+-	and	r3, r0, #7
+-	uxtb	r1, r1
+-	rsb	r3, r3, #15		@ 16 - 1 peeled loop iteration
+-	cmp	r2, r1
+-	it	eq
+-	bxeq	lr
+-
+-	@ Loop until we find ...
+-1:	ldrb	r2, [r0, #1]!
+-	subs	r3, r3, #1		@ ... the alignment point
+-	it	ne
+-	cmpne	r2, r1			@ ... or C
+-	bne	1b
+-
+-	@ Disambiguate the exit possibilites above
+-	cmp	r2, r1			@ Found C
+-	it	eq
+-	bxeq	lr
+-	add	r0, r0, #1
+-
+-	@ So now we're aligned.
+-	ldrd	r2, r3, [r0], #8
+-	orr	r1, r1, r1, lsl #8	@ Replicate C to all bytes
+-#ifdef ARCH_HAS_T2
+-	movw	ip, #0x0101
+-	pld	[r0, #64]
+-	movt	ip, #0x0101
+-#else
+-	ldr	ip, =0x01010101
+-	pld	[r0, #64]
+-#endif
+-	orr	r1, r1, r1, lsl #16
+-
+-	@ Loop searching for C, 8 bytes at a time.
+-	@ Subtracting (unsigned saturating) from 1 means result of 1 for
+-	@ any byte that was originally zero and 0 otherwise.  Therefore
+-	@ we consider the lsb of each byte the "found" bit.
+-2:	eor	r2, r2, r1		@ Convert C bytes to 0
+-	eor	r3, r3, r1
+-	uqsub8	r2, ip, r2		@ Find C
+-	uqsub8	r3, ip, r3
+-	pld	[r0, #128]
+-	orrs	r3, r3, r2		@ Test both words for found
+-	it	eq
+-	ldrdeq	r2, r3, [r0], #8
+-	beq	2b
+-
+-	@ Found something.  Disambiguate between first and second words.
+-	@ Adjust r0 to point to the word containing the match.
+-	@ Adjust r2 to the found bits for the word containing the match.
+-	cmp	r2, #0
+-	sub	r0, r0, #4
+-	ite	eq
+-	moveq	r2, r3
+-	subne	r0, r0, #4
+-
+-	@ Find the bit-offset of the match within the word.  Note that the
+-	@ bit result from clz will be 7 higher than "true", but we'll
+-	@ immediately discard those bits converting to a byte offset.
+-#ifdef __ARMEL__
+-	rev	r2, r2			@ For LE, count from the little end
+-#endif
+-	clz	r2, r2
+-	add	r0, r0, r2, lsr #3	@ Adjust the pointer to the found byte
+-	bx	lr
+-
+-END (__rawmemchr)
+-
+-weak_alias (__rawmemchr, rawmemchr)
+-libc_hidden_def (__rawmemchr)
+diff --git a/sysdeps/arm/armv6/stpcpy.S b/sysdeps/arm/armv6/stpcpy.S
+deleted file mode 100644
+index 21a4f385..00000000
+--- a/sysdeps/arm/armv6/stpcpy.S
++++ /dev/null
+@@ -1 +0,0 @@
+-/* Defined in strcpy.S.  */
+diff --git a/sysdeps/arm/armv6/strchr.S b/sysdeps/arm/armv6/strchr.S
+deleted file mode 100644
+index d7f75fa8..00000000
+--- a/sysdeps/arm/armv6/strchr.S
++++ /dev/null
+@@ -1,143 +0,0 @@
+-/* strchr -- find the first instance of C in a nul-terminated string.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY (strchr)
+-	@ r0 = start of string
+-	@ r1 = character to match
+-	@ returns NULL for no match, or a pointer to the match
+-	ldrb	r2, [r0]		@ load the first byte asap
+-	uxtb	r1, r1
+-
+-	@ To cater to long strings, we want to search through a few
+-	@ characters until we reach an aligned pointer.  To cater to
+-	@ small strings, we don't want to start doing word operations
+-	@ immediately.  The compromise is a maximum of 16 bytes less
+-	@ whatever is required to end with an aligned pointer.
+-	@ r3 = number of characters to search in alignment loop
+-	and	r3, r0, #7
+-	rsb	r3, r3, #15		@ 16 - 1 peeled loop iteration
+-	cmp	r2, r1			@ Found C?
+-	it	ne
+-	cmpne	r2, #0			@ Found EOS?
+-	beq	99f
+-
+-	@ Loop until we find ...
+-1:	ldrb	r2, [r0, #1]!
+-	subs	r3, r3, #1		@ ... the aligment point
+-	it	ne
+-	cmpne	r2, r1			@ ... or the character
+-	it	ne
+-	cmpne	r2, #0			@ ... or EOS
+-	bne	1b
+-
+-	@ Disambiguate the exit possibilites above
+-	cmp	r2, r1			@ Found the character
+-	it	ne
+-	cmpne	r2, #0			@ Found EOS
+-	beq	99f
+-	add	r0, r0, #1
+-
+-	@ So now we're aligned.  Now we actually need a stack frame.
+-	push	{ r4, r5, r6, r7 }
+-	cfi_adjust_cfa_offset (16)
+-	cfi_rel_offset (r4, 0)
+-	cfi_rel_offset (r5, 4)
+-	cfi_rel_offset (r6, 8)
+-	cfi_rel_offset (r7, 12)
+-
+-	ldrd	r2, r3, [r0], #8
+-	orr	r1, r1, r1, lsl #8	@ Replicate C to all bytes
+-#ifdef ARCH_HAS_T2
+-	movw	ip, #0x0101
+-	pld	[r0, #64]
+-	movt	ip, #0x0101
+-#else
+-	ldr	ip, =0x01010101
+-	pld	[r0, #64]
+-#endif
+-	orr	r1, r1, r1, lsl #16
+-
+-	@ Loop searching for EOS or C, 8 bytes at a time.
+-2:
+-	@ Subtracting (unsigned saturating) from 1 means result of 1 for
+-	@ any byte that was originally zero and 0 otherwise.  Therefore
+-	@ we consider the lsb of each byte the "found" bit.
+-	uqsub8	r4, ip, r2		@ Find EOS
+-	eor	r6, r2, r1		@ Convert C bytes to 0
+-	uqsub8	r5, ip, r3
+-	eor	r7, r3, r1
+-	uqsub8	r6, ip, r6		@ Find C
+-	pld	[r0, #128]		@ Prefetch 2 lines ahead
+-	uqsub8	r7, ip, r7
+-	orr	r4, r4, r6		@ Combine found for EOS and C
+-	orr	r5, r5, r7
+-	orrs	r6, r4, r5		@ Combine the two words
+-	it	eq
+-	ldrdeq	r2, r3, [r0], #8
+-	beq	2b
+-
+-	@ Found something.  Disambiguate between first and second words.
+-	@ Adjust r0 to point to the word containing the match.
+-	@ Adjust r2 to the contents of the word containing the match.
+-	@ Adjust r4 to the found bits for the word containing the match.
+-	cmp	r4, #0
+-	sub	r0, r0, #4
+-	itte	eq
+-	moveq	r4, r5
+-	moveq	r2, r3
+-	subne	r0, r0, #4
+-
+-	@ Find the bit-offset of the match within the word.
+-#if defined(__ARMEL__)
+-	@ For LE, swap the found word so clz searches from the little end.
+-	rev	r4, r4
+-#else
+-	@ For BE, byte swap the word to make it easier to extract the byte.
+-	rev	r2, r2
+-#endif
+-	@ We're counting 0x01 (not 0x80), so the bit offset is 7 too high.
+-	clz	r3, r4
+-	sub	r3, r3, #7
+-	lsr	r2, r2, r3		@ Shift down found byte
+-	uxtb	r1, r1			@ Undo replication of C
+-	uxtb	r2, r2			@ Extract found byte
+-	add	r0, r0, r3, lsr #3	@ Adjust the pointer to the found byte
+-
+-	pop	{ r4, r5, r6, r7 }
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-
+-	@ Disambiguate between EOS and C.
+-99:
+-	cmp	r2, r1
+-	it	ne
+-	movne	r0, #0			@ Found EOS, return NULL
+-	bx	lr
+-
+-END (strchr)
+-
+-weak_alias (strchr, index)
+-libc_hidden_builtin_def (strchr)
+diff --git a/sysdeps/arm/armv6/strcpy.S b/sysdeps/arm/armv6/strcpy.S
+deleted file mode 100644
+index 10c5c575..00000000
+--- a/sysdeps/arm/armv6/strcpy.S
++++ /dev/null
+@@ -1,218 +0,0 @@
+-/* strcpy -- copy a nul-terminated string.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-/* Endian independent macros for shifting bytes within registers.  */
+-#ifdef __ARMEB__
+-#define lsh_gt		lsr
+-#define lsh_ls		lsl
+-#else
+-#define lsh_gt		lsl
+-#define lsh_ls		lsr
+-#endif
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY (__stpcpy)
+-	@ Signal stpcpy with NULL in IP.
+-	mov	ip, #0
+-	b	0f
+-END (__stpcpy)
+-
+-weak_alias (__stpcpy, stpcpy)
+-libc_hidden_def (__stpcpy)
+-libc_hidden_builtin_def (stpcpy)
+-
+-ENTRY (strcpy)
+-	@ Signal strcpy with DEST in IP.
+-	mov	ip, r0
+-0:
+-	pld	[r0, #0]
+-	pld	[r1, #0]
+-
+-	@ To cater to long strings, we want 8 byte alignment in the source.
+-	@ To cater to small strings, we don't want to start that right away.
+-	@ Loop up to 16 times, less whatever it takes to reach alignment.
+-	and	r3, r1, #7
+-	rsb	r3, r3, #16
+-
+-	@ Loop until we find ...
+-1:	ldrb	r2, [r1], #1
+-	subs	r3, r3, #1		@ ... the alignment point
+-	strb	r2, [r0], #1
+-	it	ne
+-	cmpne	r2, #0			@ ... or EOS
+-	bne	1b
+-
+-	@ Disambiguate the exit possibilites above
+-	cmp	r2, #0			@ Found EOS
+-	beq	.Lreturn
+-
+-	@ Load the next two words asap
+-	ldrd	r2, r3, [r1], #8
+-	pld	[r0, #64]
+-	pld	[r1, #64]
+-
+-	@ For longer strings, we actaully need a stack frame.
+-	push	{ r4, r5, r6, r7 }
+-	cfi_adjust_cfa_offset (16)
+-	cfi_rel_offset (r4, 0)
+-	cfi_rel_offset (r5, 4)
+-	cfi_rel_offset (r6, 8)
+-	cfi_rel_offset (r7, 12)
+-
+-	@ Subtracting (unsigned saturating) from 1 for any byte means result
+-	@ of 1 for any byte that was originally zero and 0 otherwise.
+-	@ Therefore we consider the lsb of each byte the "found" bit.
+-#ifdef ARCH_HAS_T2
+-	movw	r7, #0x0101
+-	tst	r0, #3			@ Test alignment of DEST
+-	movt	r7, #0x0101
+-#else
+-	ldr	r7, =0x01010101
+-	tst	r0, #3
+-#endif
+-	bne	.Lunaligned
+-
+-	@ So now source (r1) is aligned to 8, and dest (r0) is aligned to 4.
+-	@ Loop, reading 8 bytes at a time, searching for EOS.
+-	.balign	16
+-2:	uqsub8	r4, r7, r2		@ Find EOS
+-	uqsub8	r5, r7, r3
+-	pld	[r1, #128]
+-	cmp	r4, #0			@ EOS in first word?
+-	pld	[r0, #128]
+-	bne	3f
+-	str	r2, [r0], #4
+-	cmp	r5, #0			@ EOS in second word?
+-	bne	4f
+-	str	r3, [r0], #4
+-	ldrd	r2, r3, [r1], #8
+-	b	2b
+-
+-3:	sub	r1, r1, #4		@ backup to first word
+-4:	sub	r1, r1, #4		@ backup to second word
+-
+-	@ ... then finish up any tail a byte at a time.
+-	@ Note that we generally back up and re-read source bytes,
+-	@ but we'll not re-write dest bytes.
+-.Lbyte_loop:
+-	ldrb	r2, [r1], #1
+-	cmp	r2, #0
+-	strb	r2, [r0], #1
+-	bne	.Lbyte_loop
+-
+-	pop	{ r4, r5, r6, r7 }
+-	cfi_remember_state
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-
+-.Lreturn:
+-	cmp	ip, #0			@ Was this strcpy or stpcpy?
+-	ite	eq
+-	subeq	r0, r0, #1		@ stpcpy: undo post-inc from store
+-	movne	r0, ip			@ strcpy: return original dest
+-	bx	lr
+-
+-.Lunaligned:
+-	cfi_restore_state
+-	@ Here, source is aligned to 8, but the destination is not word
+-	@ aligned.  Therefore we have to shift the data in order to be
+-	@ able to perform aligned word stores.
+-
+-	@ Find out which misalignment we're dealing with.
+-	tst	r0, #1
+-	beq	.Lunaligned2
+-	tst	r0, #2
+-	bne	.Lunaligned3
+-	@ Fallthru to .Lunaligned1.
+-
+-.macro unaligned_copy	unalign
+-	@ Prologue to unaligned loop.  Seed shifted non-zero bytes.
+-	uqsub8	r4, r7, r2		@ Find EOS
+-	uqsub8	r5, r7, r3
+-	cmp	r4, #0			@ EOS in first word?
+-	it	ne
+-	subne	r1, r1, #8
+-	bne	.Lbyte_loop
+-#ifdef __ARMEB__
+-	rev	r2, r2			@ Byte stores below need LE data
+-#endif
+-	@ Store a few bytes from the first word.
+-	@ At the same time we align r0 and shift out bytes from r2.
+-.rept	4-\unalign
+-	strb	r2, [r0], #1
+-	lsr	r2, r2, #8
+-.endr
+-#ifdef __ARMEB__
+-	rev	r2, r2			@ Undo previous rev
+-#endif
+-	@ Rotated unaligned copy loop.  The tail of the prologue is
+-	@ shared with the loop itself.
+-	.balign 8
+-1:	cmp	r5, #0			@ EOS in second word?
+-	bne	4f
+-	@ Combine first and second words
+-	orr	r2, r2, r3, lsh_gt #(\unalign*8)
+-	@ Save leftover bytes from the two words
+-	lsh_ls	r6, r3, #((4-\unalign)*8)
+-	str	r2, [r0], #4
+-	@ The "real" start of the unaligned copy loop.
+-	ldrd	r2, r3, [r1], #8	@ Load 8 more bytes
+-	uqsub8	r4, r7, r2		@ Find EOS
+-	pld	[r1, #128]
+-	uqsub8	r5, r7, r3
+-	pld	[r0, #128]
+-	cmp	r4, #0			@ EOS in first word?
+-	bne	3f
+-	@ Combine the leftover and the first word
+-	orr	r6, r6, r2, lsh_gt #(\unalign*8)
+-	@ Discard used bytes from the first word.
+-	lsh_ls	r2, r2, #((4-\unalign)*8)
+-	str	r6, [r0], #4
+-	b	1b
+-	@ Found EOS in one of the words; adjust backward
+-3:	sub	r1, r1, #4
+-	mov	r2, r6
+-4:	sub	r1, r1, #4
+-	@ And store the remaining bytes from the leftover
+-#ifdef __ARMEB__
+-	rev	r2, r2
+-#endif
+-.rept	\unalign
+-	strb	r2, [r0], #1
+-	lsr	r2, r2, #8
+-.endr
+-	b	.Lbyte_loop
+-.endm
+-
+-.Lunaligned1:
+-	unaligned_copy	1
+-.Lunaligned2:
+-	unaligned_copy	2
+-.Lunaligned3:
+-	unaligned_copy	3
+-
+-END (strcpy)
+-
+-libc_hidden_builtin_def (strcpy)
+diff --git a/sysdeps/arm/armv6/strlen.S b/sysdeps/arm/armv6/strlen.S
+deleted file mode 100644
+index 1fb91342..00000000
+--- a/sysdeps/arm/armv6/strlen.S
++++ /dev/null
+@@ -1,99 +0,0 @@
+-/* strlen -- find the length of a nul-terminated string.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY (strlen)
+-	@ r0 = start of string
+-	ldrb	r2, [r0]		@ load the first byte asap
+-
+-	@ To cater to long strings, we want to search through a few
+-	@ characters until we reach an aligned pointer.  To cater to
+-	@ small strings, we don't want to start doing word operations
+-	@ immediately.  The compromise is a maximum of 16 bytes less
+-	@ whatever is required to end with an aligned pointer.
+-	@ r3 = number of characters to search in alignment loop
+-	and	r3, r0, #7
+-	mov	r1, r0			@ Save the input pointer
+-	rsb	r3, r3, #15		@ 16 - 1 peeled loop iteration
+-	cmp	r2, #0
+-	beq	99f
+-
+-	@ Loop until we find ...
+-1:	ldrb	r2, [r0, #1]!
+-	subs	r3, r3, #1		@ ... the aligment point
+-	it	ne
+-	cmpne	r2, #0			@ ... or EOS
+-	bne	1b
+-
+-	@ Disambiguate the exit possibilites above
+-	cmp	r2, #0			@ Found EOS
+-	beq	99f
+-	add	r0, r0, #1
+-
+-	@ So now we're aligned.
+-	ldrd	r2, r3, [r0], #8
+-#ifdef ARCH_HAS_T2
+-	movw	ip, #0x0101
+-	pld	[r0, #64]
+-	movt	ip, #0x0101
+-#else
+-	ldr	ip, =0x01010101
+-	pld	[r0, #64]
+-#endif
+-
+-	@ Loop searching for EOS, 8 bytes at a time.
+-	@ Subtracting (unsigned saturating) from 1 for any byte means that
+-	@ we get 1 for any byte that was originally zero and 0 otherwise.
+-	@ Therefore we consider the lsb of each byte the "found" bit.
+-	.balign	16
+-2:	uqsub8	r2, ip, r2		@ Find EOS
+-	uqsub8	r3, ip, r3
+-	pld	[r0, #128]		@ Prefetch 2 lines ahead
+-	orrs	r3, r3, r2		@ Combine the two words
+-	it	eq
+-	ldrdeq	r2, r3, [r0], #8
+-	beq	2b
+-
+-	@ Found something.  Disambiguate between first and second words.
+-	@ Adjust r0 to point to the word containing the match.
+-	@ Adjust r2 to the found bits for the word containing the match.
+-	cmp	r2, #0
+-	sub	r0, r0, #4
+-	ite	eq
+-	moveq	r2, r3
+-	subne	r0, r0, #4
+-
+-	@ Find the bit-offset of the match within the word.  Note that the
+-	@ bit result from clz will be 7 higher than "true", but we'll
+-	@ immediately discard those bits converting to a byte offset.
+-#ifdef __ARMEL__
+-	rev	r2, r2			@ For LE, count from the little end
+-#endif
+-	clz	r2, r2
+-	add	r0, r0, r2, lsr #3	@ Adjust the pointer to the found byte
+-99:
+-	sub	r0, r0, r1		@ Subtract input to compute length
+-	bx	lr
+-
+-END (strlen)
+-
+-libc_hidden_builtin_def (strlen)
+diff --git a/sysdeps/arm/armv6/strrchr.S b/sysdeps/arm/armv6/strrchr.S
+deleted file mode 100644
+index 892dd2b1..00000000
+--- a/sysdeps/arm/armv6/strrchr.S
++++ /dev/null
+@@ -1,129 +0,0 @@
+-/* strrchr -- find the last occurence of C in a nul-terminated string
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY (strrchr)
+-	@ r0 = start of string
+-	@ r1 = character to match
+-	@ returns NULL for no match, or a pointer to the match
+-
+-	mov	r3, r0
+-	mov	r0, #0
+-	uxtb	r1, r1
+-
+-	@ Loop a few times until we're aligned.
+-	tst	r3, #7
+-	beq	2f
+-1:	ldrb	r2, [r3], #1
+-	cmp	r2, r1			@ Find the character
+-	it	eq
+-	subeq	r0, r3, #1
+-	cmp	r2, #0			@ Find EOS
+-	it	eq
+-	bxeq	lr
+-	tst	r3, #7			@ Find the aligment point
+-	bne	1b
+-
+-	@ So now we're aligned.  Now we actually need a stack frame.
+-2:	push	{ r4, r5, r6, r7 }
+-	cfi_adjust_cfa_offset (16)
+-	cfi_rel_offset (r4, 0)
+-	cfi_rel_offset (r5, 4)
+-	cfi_rel_offset (r6, 8)
+-	cfi_rel_offset (r7, 12)
+-
+-	orr	r1, r1, r1, lsl #8	@ Replicate C to all bytes
+-#ifdef ARCH_HAS_T2
+-	movw	ip, #0x0101
+-	movt	ip, #0x0101
+-#else
+-	ldr	ip, =0x01010101
+-#endif
+-	orr	r1, r1, r1, lsl #16
+-	mov	r2, #0			@ No found bits yet
+-
+-	@ Loop searching for EOS and C, 8 bytes at a time.
+-	@ Any time we find a match in a word, we copy the address of
+-	@ the word to r0, and the found bits to r2.
+-3:	ldrd	r4, r5, [r3], #8
+-	@ Subtracting (unsigned saturating) from 1 means result of 1 for
+-	@ any byte that was originally zero and 0 otherwise.  Therefore
+-	@ we consider the lsb of each byte the "found" bit.
+-	uqsub8	r6, ip, r4		@ Find EOS
+-	uqsub8	r7, ip, r5
+-	eor	r4, r4, r1		@ Convert C bytes to 0
+-	eor	r5, r5, r1
+-	uqsub8	r4, ip, r4		@ Find C
+-	uqsub8	r5, ip, r5
+-	cmp	r6, #0			@ Found EOS, first word
+-	bne	4f
+-	cmp	r4, #0			@ Handle C, first word
+-	itt	ne
+-	subne	r0, r3, #8
+-	movne	r2, r4
+-	cmp	r7, #0			@ Found EOS, second word
+-	bne	5f
+-	cmp	r5, #0			@ Handle C, second word
+-	itt	ne
+-	subne	r0, r3, #4
+-	movne	r2, r5
+-	b	3b
+-
+-	@ Found EOS in second word; fold to first word.
+-5:	add	r3, r3, #4		@ Dec pointer to 2nd word, with below
+-	mov	r4, r5			@ Overwrite first word C found
+-	mov	r6, r7			@ Overwrite first word EOS found
+-
+-	@ Found EOS.  Zap found C after EOS.
+-4:	sub	r3, r3, #8		@ Decrement pointer to first word
+-#ifdef __ARMEB__
+-	@ Byte swap to be congruent with LE, which is easier from here on.
+-	rev	r6, r6			@ Byte swap found EOS,
+-	rev	r4, r4			@ ... this found C
+-	rev	r2, r2			@ ... prev found C
+-#endif
+-	sub	r7, r6, #1		@ Toggle EOS lsb and below
+-	eor	r6, r6, r7		@ All bits below and including lsb
+-	ands	r4, r4, r6		@ Zap C above EOS
+-	itt	ne
+-	movne	r2, r4			@ Copy to result, if still non-zero
+-	movne	r0, r3
+-
+-	pop	{ r4, r5, r6, r7 }
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-
+-	@ Adjust the result pointer if we found a word containing C.
+-	cmp	r2, #0
+-	clz	r2, r2			@ Find the bit offset of the last C
+-	itt	ne
+-	rsbne	r2, r2, #32		@ Convert to a count from the right
+-	addne	r0, r0, r2, lsr #3	@ Convert to byte offset and add.
+-	bx	lr
+-
+-END (strrchr)
+-
+-weak_alias (strrchr, rindex)
+-libc_hidden_builtin_def (strrchr)
+diff --git a/sysdeps/arm/armv6t2/memchr.S b/sysdeps/arm/armv6t2/memchr.S
+deleted file mode 100644
+index bdd385b5..00000000
+--- a/sysdeps/arm/armv6t2/memchr.S
++++ /dev/null
+@@ -1,184 +0,0 @@
+-/* Copyright (C) 2011-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Code contributed by Dave Gilbert <david.gilbert@linaro.org>
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-@ This memchr routine is optimised on a Cortex-A9 and should work on all ARMv7
+-@ and ARMv6T2 processors.  It has a fast path for short sizes, and has an
+-@ optimised path for large data sets; the worst case is finding the match early
+-@ in a large data set.
+-@ Note: The use of cbz/cbnz means it's Thumb only
+-
+-@ 2011-07-15 david.gilbert@linaro.org
+-@    Copy from Cortex strings release 21 and change license
+-@ http://bazaar.launchpad.net/~linaro-toolchain-dev/cortex-strings/trunk/view/head:/src/linaro-a9/memchr.S
+-@    Change function declarations/entry/exit
+-@ 2011-12-01 david.gilbert@linaro.org
+-@    Add some fixes from comments received (including use of ldrd instead ldm)
+-@ 2011-12-07 david.gilbert@linaro.org
+-@    Removed cbz from align loop - can't be taken
+-
+-@ this lets us check a flag in a 00/ff byte easily in either endianness
+-#ifdef __ARMEB__
+-#define CHARTSTMASK(c) 1<<(31-(c*8))
+-#else
+-#define CHARTSTMASK(c) 1<<(c*8)
+-#endif
+-	.syntax unified
+-
+-	.text
+-#ifdef NO_THUMB
+-	.arm
+-#else
+-	.thumb
+-	.thumb_func
+-#endif
+-	.global memchr
+-	.type memchr,%function
+-ENTRY(memchr)
+-	@ r0 = start of memory to scan
+-	@ r1 = character to look for
+-	@ r2 = length
+-	@ returns r0 = pointer to character or NULL if not found
+-	and	r1,r1,#0xff	@ Don't think we can trust the caller to actually pass a char
+-
+-	cmp	r2,#16		@ If it's short don't bother with anything clever
+-	blt	20f
+-
+-	tst	r0, #7		@ If it's already aligned skip the next bit
+-	beq	10f
+-
+-	@ Work up to an aligned point
+-5:
+-	ldrb	r3, [r0],#1
+-	subs	r2, r2, #1
+-	cmp	r3, r1
+-	beq	50f		@ If it matches exit found
+-	tst	r0, #7
+-	bne	5b		@ If not aligned yet then do next byte
+-
+-10:
+-	@ At this point, we are aligned, we know we have at least 8 bytes to work with
+-	push	{r4,r5,r6,r7}
+-	cfi_adjust_cfa_offset (16)
+-	cfi_rel_offset (r4, 0)
+-	cfi_rel_offset (r5, 4)
+-	cfi_rel_offset (r6, 8)
+-	cfi_rel_offset (r7, 12)
+-
+-	cfi_remember_state
+-
+-	orr	r1, r1, r1, lsl #8	@ expand the match word across to all bytes
+-	orr	r1, r1, r1, lsl #16
+-	bic	r6, r2, #7	@ Number of double words to work with * 8
+-	mvns	r7, #0		@ all F's
+-	movs	r3, #0
+-
+-15:
+-	ldrd 	r4,r5, [r0],#8
+-#ifndef NO_THUMB
+-	subs	r6, r6, #8
+-#endif
+-	eor	r4,r4, r1	@ Get it so that r4,r5 have 00's where the bytes match the target
+-	eor	r5,r5, r1
+-	uadd8	r4, r4, r7	@ Parallel add 0xff - sets the GE bits for anything that wasn't 0
+-	sel	r4, r3, r7	@ bytes are 00 for none-00 bytes, or ff for 00 bytes - NOTE INVERSION
+-	uadd8	r5, r5, r7	@ Parallel add 0xff - sets the GE bits for anything that wasn't 0
+-	sel	r5, r4, r7	@ chained....bytes are 00 for none-00 bytes, or ff for 00 bytes - NOTE INVERSION
+-#ifndef NO_THUMB
+-	cbnz	r5, 60f
+-#else
+-	cmp	r5, #0
+-	bne	60f
+-	subs	r6, r6, #8
+-#endif
+-	bne	15b		@ (Flags from the subs above) If not run out of bytes then go around again
+-
+-	pop	{r4,r5,r6,r7}
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-
+-	and	r1,r1,#0xff	@ Get r1 back to a single character from the expansion above
+-	and	r2,r2,#7	@ Leave the count remaining as the number after the double words have been done
+-
+-20:
+-#ifndef NO_THUMB
+-	cbz	r2, 40f		@ 0 length or hit the end already then not found
+-#else
+-	cmp	r2, #0
+-	beq	40f
+-#endif
+-
+-21:  @ Post aligned section, or just a short call
+-	ldrb	r3,[r0],#1
+-#ifndef NO_THUMB
+-	subs	r2,r2,#1
+-	eor	r3,r3,r1	@ r3 = 0 if match - doesn't break flags from sub
+-	cbz	r3, 50f
+-#else
+-	eors	r3, r3, r1
+-	beq	50f
+-	subs	r2, r2, #1
+-#endif
+-	bne	21b		@ on r2 flags
+-
+-40:
+-	movs	r0,#0		@ not found
+-	DO_RET(lr)
+-
+-50:
+-	subs	r0,r0,#1	@ found
+-	DO_RET(lr)
+-
+-60:  @ We're here because the fast path found a hit - now we have to track down exactly which word it was
+-     @ r0 points to the start of the double word after the one that was tested
+-     @ r4 has the 00/ff pattern for the first word, r5 has the chained value
+-	cfi_restore_state
+-	cmp	r4, #0
+-	itte	eq
+-	moveq	r4, r5		@ the end is in the 2nd word
+-	subeq	r0,r0,#3	@ Points to 2nd byte of 2nd word
+-	subne	r0,r0,#7	@ or 2nd byte of 1st word
+-
+-	@ r0 currently points to the 2nd byte of the word containing the hit
+-	tst	r4, # CHARTSTMASK(0)	@ 1st character
+-	bne	61f
+-	adds	r0,r0,#1
+-	tst	r4, # CHARTSTMASK(1)	@ 2nd character
+-	ittt	eq
+-	addeq	r0,r0,#1
+-	tsteq	r4, # (3<<15)		@ 2nd & 3rd character
+-	@ If not the 3rd must be the last one
+-	addeq	r0,r0,#1
+-
+-61:
+-	pop	{r4,r5,r6,r7}
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-
+-	subs	r0,r0,#1
+-	DO_RET(lr)
+-
+-END(memchr)
+-libc_hidden_builtin_def (memchr)
+diff --git a/sysdeps/arm/armv6t2/strlen.S b/sysdeps/arm/armv6t2/strlen.S
+deleted file mode 100644
+index 6988183e..00000000
+--- a/sysdeps/arm/armv6t2/strlen.S
++++ /dev/null
+@@ -1,164 +0,0 @@
+-/* Copyright (C) 2010-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/*
+-   Assumes:
+-   ARMv6T2, AArch32
+-
+- */
+-
+-#include <arm-features.h>               /* This might #define NO_THUMB.  */
+-#include <sysdep.h>
+-
+-#ifdef __ARMEB__
+-#define S2LO		lsl
+-#define S2HI		lsr
+-#else
+-#define S2LO		lsr
+-#define S2HI		lsl
+-#endif
+-
+-#ifndef NO_THUMB
+-/* This code is best on Thumb.  */
+-	.thumb
+-#else
+-/* Using bne.w explicitly is desirable in Thumb mode because it helps
+-   align the following label without a nop.  In ARM mode there is no
+-   such difference.  */
+-.macro bne.w label
+-	bne \label
+-.endm
+-
+-/* This clobbers the condition codes, which the real Thumb cbnz instruction
+-   does not do.  But it doesn't matter for any of the uses here.  */
+-.macro cbnz reg, label
+-	cmp \reg, #0
+-	bne \label
+-.endm
+-#endif
+-
+-/* Parameters and result.  */
+-#define srcin		r0
+-#define result		r0
+-
+-/* Internal variables.  */
+-#define src		r1
+-#define data1a		r2
+-#define data1b		r3
+-#define const_m1	r12
+-#define const_0		r4
+-#define tmp1		r4		/* Overlaps const_0  */
+-#define tmp2		r5
+-
+-	.text
+-	.p2align 6
+-ENTRY(strlen)
+-	pld	[srcin, #0]
+-	strd	r4, r5, [sp, #-8]!
+-	cfi_adjust_cfa_offset (8)
+-	cfi_rel_offset (r4, 0)
+-	cfi_rel_offset (r5, 4)
+-	cfi_remember_state
+-	bic	src, srcin, #7
+-	mvn	const_m1, #0
+-	ands	tmp1, srcin, #7		/* (8 - bytes) to alignment.  */
+-	pld	[src, #32]
+-	bne.w	.Lmisaligned8
+-	mov	const_0, #0
+-	mov	result, #-8
+-.Lloop_aligned:
+-	/* Bytes 0-7.  */
+-	ldrd	data1a, data1b, [src]
+-	pld	[src, #64]
+-	add	result, result, #8
+-.Lstart_realigned:
+-	uadd8	data1a, data1a, const_m1	/* Saturating GE<0:3> set.  */
+-	sel	data1a, const_0, const_m1	/* Select based on GE<0:3>.  */
+-	uadd8	data1b, data1b, const_m1
+-	sel	data1b, data1a, const_m1	/* Only used if d1a == 0.  */
+-	cbnz	data1b, .Lnull_found
+-
+-	/* Bytes 8-15.  */
+-	ldrd	data1a, data1b, [src, #8]
+-	uadd8	data1a, data1a, const_m1	/* Saturating GE<0:3> set.  */
+-	add	result, result, #8
+-	sel	data1a, const_0, const_m1	/* Select based on GE<0:3>.  */
+-	uadd8	data1b, data1b, const_m1
+-	sel	data1b, data1a, const_m1	/* Only used if d1a == 0.  */
+-	cbnz	data1b, .Lnull_found
+-
+-	/* Bytes 16-23.  */
+-	ldrd	data1a, data1b, [src, #16]
+-	uadd8	data1a, data1a, const_m1	/* Saturating GE<0:3> set.  */
+-	add	result, result, #8
+-	sel	data1a, const_0, const_m1	/* Select based on GE<0:3>.  */
+-	uadd8	data1b, data1b, const_m1
+-	sel	data1b, data1a, const_m1	/* Only used if d1a == 0.  */
+-	cbnz	data1b, .Lnull_found
+-
+-	/* Bytes 24-31.  */
+-	ldrd	data1a, data1b, [src, #24]
+-	add	src, src, #32
+-	uadd8	data1a, data1a, const_m1	/* Saturating GE<0:3> set.  */
+-	add	result, result, #8
+-	sel	data1a, const_0, const_m1	/* Select based on GE<0:3>.  */
+-	uadd8	data1b, data1b, const_m1
+-	sel	data1b, data1a, const_m1	/* Only used if d1a == 0.  */
+-	cmp	data1b, #0
+-	beq	.Lloop_aligned
+-
+-.Lnull_found:
+-	cmp	data1a, #0
+-	itt	eq
+-	addeq	result, result, #4
+-	moveq	data1a, data1b
+-#ifndef __ARMEB__
+-	rev	data1a, data1a
+-#endif
+-	clz	data1a, data1a
+-	ldrd	r4, r5, [sp], #8
+-	cfi_adjust_cfa_offset (-8)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	add	result, result, data1a, lsr #3	/* Bits -> Bytes.  */
+-	DO_RET(lr)
+-
+-.Lmisaligned8:
+-	cfi_restore_state
+-	ldrd	data1a, data1b, [src]
+-	and	tmp2, tmp1, #3
+-	rsb	result, tmp1, #0
+-	lsl	tmp2, tmp2, #3			/* Bytes -> bits.  */
+-	tst	tmp1, #4
+-	pld	[src, #64]
+-	S2HI	tmp2, const_m1, tmp2
+-#ifdef NO_THUMB
+-	mvn	tmp1, tmp2
+-	orr	data1a, data1a, tmp1
+-	itt	ne
+-	orrne	data1b, data1b, tmp1
+-#else
+-	orn	data1a, data1a, tmp2
+-	itt	ne
+-	ornne	data1b, data1b, tmp2
+-#endif
+-	movne	data1a, const_m1
+-	mov	const_0, #0
+-	b	.Lstart_realigned
+-
+-END(strlen)
+-libc_hidden_builtin_def (strlen)
+diff --git a/sysdeps/arm/armv7/multiarch/Makefile b/sysdeps/arm/armv7/multiarch/Makefile
+deleted file mode 100644
+index 6e5851f8..00000000
+--- a/sysdeps/arm/armv7/multiarch/Makefile
++++ /dev/null
+@@ -1,4 +0,0 @@
+-ifeq ($(subdir),string)
+-sysdep_routines += memcpy_neon memcpy_vfp memchr_neon memcpy_arm \
+-		   memchr_noneon
+-endif
+diff --git a/sysdeps/arm/armv7/multiarch/aeabi_memcpy.c b/sysdeps/arm/armv7/multiarch/aeabi_memcpy.c
+deleted file mode 100644
+index c6a2a98a..00000000
+--- a/sysdeps/arm/armv7/multiarch/aeabi_memcpy.c
++++ /dev/null
+@@ -1,2 +0,0 @@
+-/* Empty file to override sysdeps/arm version. See memcpy.S for definitions
+-   of these functions.  */
+diff --git a/sysdeps/arm/armv7/multiarch/ifunc-impl-list.c b/sysdeps/arm/armv7/multiarch/ifunc-impl-list.c
+deleted file mode 100644
+index 48e43da6..00000000
+--- a/sysdeps/arm/armv7/multiarch/ifunc-impl-list.c
++++ /dev/null
+@@ -1,61 +0,0 @@
+-/* Enumerate available IFUNC implementations of a function.  ARM version.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <stdbool.h>
+-#include <string.h>
+-#include <ldsodefs.h>
+-#include <sysdep.h>
+-#include <ifunc-impl-list.h>
+-
+-/* Fill ARRAY of MAX elements with IFUNC implementations for function
+-   NAME and return the number of valid entries.  */
+-
+-size_t
+-__libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+-			size_t max)
+-{
+-  size_t i = 0;
+-
+-  bool use_neon = true;
+-#ifdef __ARM_NEON__
+-# define __memcpy_neon	memcpy
+-# define __memchr_neon	memchr
+-#else
+-  use_neon = (GLRO(dl_hwcap) & HWCAP_ARM_NEON) != 0;
+-#endif
+-
+-#ifndef __ARM_NEON__
+-  bool use_vfp = true;
+-# ifdef __SOFTFP__
+-  use_vfp = (GLRO(dl_hwcap) & HWCAP_ARM_VFP) != 0;
+-# endif
+-#endif
+-
+-  IFUNC_IMPL (i, name, memcpy,
+-	      IFUNC_IMPL_ADD (array, i, memcpy, use_neon, __memcpy_neon)
+-#ifndef __ARM_NEON__
+-	      IFUNC_IMPL_ADD (array, i, memcpy, use_vfp, __memcpy_vfp)
+-#endif
+-	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_arm));
+-
+-  IFUNC_IMPL (i, name, memchr,
+-	      IFUNC_IMPL_ADD (array, i, memchr, use_neon, __memchr_neon)
+-	      IFUNC_IMPL_ADD (array, i, memchr, 1, __memchr_noneon));
+-
+-  return i;
+-}
+diff --git a/sysdeps/arm/armv7/multiarch/ifunc-memchr.h b/sysdeps/arm/armv7/multiarch/ifunc-memchr.h
+deleted file mode 100644
+index 75495824..00000000
+--- a/sysdeps/arm/armv7/multiarch/ifunc-memchr.h
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/* Common definition for memchr resolver.
+-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-__typeof (REDIRECT_NAME) OPTIMIZE (neon) attribute_hidden;
+-__typeof (REDIRECT_NAME) OPTIMIZE (noneon) attribute_hidden;
+-
+-static inline void *
+-IFUNC_SELECTOR (int hwcap)
+-{
+-  if (hwcap & HWCAP_ARM_NEON)
+-    return OPTIMIZE (neon);
+-  return OPTIMIZE (noneon);
+-}
+diff --git a/sysdeps/arm/armv7/multiarch/ifunc-memcpy.h b/sysdeps/arm/armv7/multiarch/ifunc-memcpy.h
+deleted file mode 100644
+index 7e6f73ff..00000000
+--- a/sysdeps/arm/armv7/multiarch/ifunc-memcpy.h
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/* Common definition for memcpy resolver.
+-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifdef __SOFTFP__
+-__typeof (REDIRECT_NAME) OPTIMIZE (arm) attribute_hidden;
+-#endif
+-__typeof (REDIRECT_NAME) OPTIMIZE (vfp) attribute_hidden;
+-__typeof (REDIRECT_NAME) OPTIMIZE (neon) attribute_hidden;
+-
+-static inline void *
+-IFUNC_SELECTOR (int hwcap)
+-{
+-  if (hwcap & HWCAP_ARM_NEON)
+-    return OPTIMIZE (neon);
+-#ifdef __SOFTFP__
+-  if (hwcap & HWCAP_ARM_VFP)
+-    return OPTIMIZE (vfp);
+-  return OPTIMIZE (arm);
+-#else
+-  return OPTIMIZE (vfp);
+-#endif
+-}
+diff --git a/sysdeps/arm/armv7/multiarch/memchr.c b/sysdeps/arm/armv7/multiarch/memchr.c
+deleted file mode 100644
+index ff1cc5d2..00000000
+--- a/sysdeps/arm/armv7/multiarch/memchr.c
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/* Multiple versions of memchr.
+-   All versions must be listed in ifunc-impl-list.c.
+-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* For __ARM_NEON__ memchr_neon.S defines memchr directly and ifunc
+-   is not used.  */
+-#if IS_IN (libc) && !defined (__ARM_NEON__)
+-# define memchr __redirect_memchr
+-# include <string.h>
+-# undef memchr
+-
+-# include <arm-ifunc.h>
+-
+-# define SYMBOL_NAME memchr
+-# include "ifunc-memchr.h"
+-
+-arm_libc_ifunc_redirected (__redirect_memchr, memchr, IFUNC_SELECTOR);
+-
+-arm_libc_ifunc_hidden_def (__redirect_memchr, memchr);
+-#endif
+diff --git a/sysdeps/arm/armv7/multiarch/memchr_neon.S b/sysdeps/arm/armv7/multiarch/memchr_neon.S
+deleted file mode 100644
+index 1b2ae75a..00000000
+--- a/sysdeps/arm/armv7/multiarch/memchr_neon.S
++++ /dev/null
+@@ -1,218 +0,0 @@
+-/* memchr implemented using NEON.
+-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-/* For __ARM_NEON__ this file defines memchr.  */
+-#ifndef __ARM_NEON__
+-# define memchr __memchr_neon
+-# undef libc_hidden_builtin_def
+-# define libc_hidden_builtin_def(a)
+-#endif
+-
+-	.arch	armv7-a
+-	.fpu	neon
+-
+-
+-/* Arguments */
+-#define srcin		r0
+-#define chrin		r1
+-#define cntin		r2
+-
+-/* Retval */
+-#define result		r0	/* Live range does not overlap with srcin */
+-
+-/* Working registers */
+-#define src		r1	/* Live range does not overlap with chrin */
+-#define tmp		r3
+-#define synd		r0	/* No overlap with srcin or result */
+-#define soff		r12
+-
+-/* Working NEON registers */
+-#define vrepchr		q0
+-#define vdata0		q1
+-#define vdata0_0	d2	/* Lower half of vdata0 */
+-#define vdata0_1	d3	/* Upper half of vdata0 */
+-#define vdata1		q2
+-#define vdata1_0	d4	/* Lower half of vhas_chr0 */
+-#define vdata1_1	d5	/* Upper half of vhas_chr0 */
+-#define vrepmask	q3
+-#define vrepmask0	d6
+-#define vrepmask1	d7
+-#define vend		q4
+-#define vend0		d8
+-#define vend1		d9
+-
+-/*
+- * Core algorithm:
+- *
+- * For each 32-byte chunk we calculate a 32-bit syndrome value, with one bit per
+- * byte. Each bit is set if the relevant byte matched the requested character
+- * and cleared otherwise. Since the bits in the syndrome reflect exactly the
+- * order in which things occur in the original string, counting trailing zeros
+- * allows to identify exactly which byte has matched.
+- */
+-
+-#ifndef NO_THUMB
+-	.thumb_func
+-#else
+-	.arm
+-#endif
+-	.p2align 4,,15
+-
+-ENTRY(memchr)
+-	/* Use a simple loop if there are less than 8 bytes to search.  */
+-	cmp	cntin, #7
+-	bhi	.Llargestr
+-	and	chrin, chrin, #0xff
+-
+-.Lsmallstr:
+-	subs	cntin, cntin, #1
+-	blo	.Lnotfound	/* Return not found if reached end.  */
+-	ldrb	tmp, [srcin], #1
+-	cmp	tmp, chrin
+-	bne	.Lsmallstr	/* Loop again if not found.  */
+-	/* Otherwise fixup address and return.  */
+-	sub	result, srcin, #1
+-	bx	lr
+-
+-
+-.Llargestr:
+-	vdup.8	vrepchr, chrin	/* Duplicate char across all lanes. */
+-	/*
+-	 * Magic constant 0x8040201008040201 allows us to identify which lane
+-	 * matches the requested byte.
+-	 */
+-	movw	tmp, #0x0201
+-	movt	tmp, #0x0804
+-	lsl	soff, tmp, #4
+-	vmov	vrepmask0, tmp, soff
+-	vmov	vrepmask1, tmp, soff
+-	/* Work with aligned 32-byte chunks */
+-	bic	src, srcin, #31
+-	ands	soff, srcin, #31
+-	beq	.Lloopintro	/* Go straight to main loop if it's aligned. */
+-
+-	/*
+-	 * Input string is not 32-byte aligned. We calculate the syndrome
+-	 * value for the aligned 32 bytes block containing the first bytes
+-	 * and mask the irrelevant part.
+-	 */
+-	vld1.8		{vdata0, vdata1}, [src:256]!
+-	sub		tmp, soff, #32
+-	adds		cntin, cntin, tmp
+-	vceq.i8		vdata0, vdata0, vrepchr
+-	vceq.i8		vdata1, vdata1, vrepchr
+-	vand		vdata0, vdata0, vrepmask
+-	vand		vdata1, vdata1, vrepmask
+-	vpadd.i8	vdata0_0, vdata0_0, vdata0_1
+-	vpadd.i8	vdata1_0, vdata1_0, vdata1_1
+-	vpadd.i8	vdata0_0, vdata0_0, vdata1_0
+-	vpadd.i8	vdata0_0, vdata0_0, vdata0_0
+-	vmov		synd, vdata0_0[0]
+-
+-	/* Clear the soff lower bits */
+-	lsr		synd, synd, soff
+-	lsl		synd, synd, soff
+-	/* The first block can also be the last */
+-	bls		.Lmasklast
+-	/* Have we found something already? */
+-#ifndef NO_THUMB
+-	cbnz		synd, .Ltail
+-#else
+-	cmp		synd, #0
+-	bne		.Ltail
+-#endif
+-
+-
+-.Lloopintro:
+-	vpush	{vend}
+-	/* 264/265 correspond to d8/d9 for q4 */
+-	cfi_adjust_cfa_offset (16)
+-	cfi_rel_offset (264, 0)
+-	cfi_rel_offset (265, 8)
+-	.p2align 3,,7
+-.Lloop:
+-	vld1.8		{vdata0, vdata1}, [src:256]!
+-	subs		cntin, cntin, #32
+-	vceq.i8		vdata0, vdata0, vrepchr
+-	vceq.i8		vdata1, vdata1, vrepchr
+-	/* If we're out of data we finish regardless of the result. */
+-	bls		.Lend
+-	/* Use a fast check for the termination condition. */
+-	vorr		vend, vdata0, vdata1
+-	vorr		vend0, vend0, vend1
+-	vmov		synd, tmp, vend0
+-	orrs		synd, synd, tmp
+-	/* We're not out of data, loop if we haven't found the character. */
+-	beq		.Lloop
+-
+-.Lend:
+-	vpop		{vend}
+-	cfi_adjust_cfa_offset (-16)
+-	cfi_restore (264)
+-	cfi_restore (265)
+-
+-	/* Termination condition found, let's calculate the syndrome value. */
+-	vand		vdata0, vdata0, vrepmask
+-	vand		vdata1, vdata1, vrepmask
+-	vpadd.i8	vdata0_0, vdata0_0, vdata0_1
+-	vpadd.i8	vdata1_0, vdata1_0, vdata1_1
+-	vpadd.i8	vdata0_0, vdata0_0, vdata1_0
+-	vpadd.i8	vdata0_0, vdata0_0, vdata0_0
+-	vmov		synd, vdata0_0[0]
+-#ifndef NO_THUMB
+-	cbz		synd, .Lnotfound
+-	bhi		.Ltail	/* Uses the condition code from
+-				   subs cntin, cntin, #32 above.  */
+-#else
+-	cmp		synd, #0
+-	beq		.Lnotfound
+-	cmp		cntin, #0
+-	bhi		.Ltail
+-#endif
+-
+-
+-.Lmasklast:
+-	/* Clear the (-cntin) upper bits to avoid out-of-bounds matches. */
+-	neg	cntin, cntin
+-	lsl	synd, synd, cntin
+-	lsrs	synd, synd, cntin
+-	it	eq
+-	moveq	src, #0	/* If no match, set src to 0 so the retval is 0. */
+-
+-
+-.Ltail:
+-	/* Count the trailing zeros using bit reversing */
+-	rbit	synd, synd
+-	/* Compensate the last post-increment */
+-	sub	src, src, #32
+-	/* Count the leading zeros */
+-	clz	synd, synd
+-	/* Compute the potential result and return */
+-	add	result, src, synd
+-	bx	lr
+-
+-
+-.Lnotfound:
+-	/* Set result to NULL if not found and return */
+-	mov	result, #0
+-	bx	lr
+-
+-END(memchr)
+-libc_hidden_builtin_def (memchr)
+diff --git a/sysdeps/arm/armv7/multiarch/memchr_noneon.S b/sysdeps/arm/armv7/multiarch/memchr_noneon.S
+deleted file mode 100644
+index b1fb5401..00000000
+--- a/sysdeps/arm/armv7/multiarch/memchr_noneon.S
++++ /dev/null
+@@ -1,5 +0,0 @@
+-#define memchr __memchr_noneon
+-#undef libc_hidden_builtin_def
+-#define libc_hidden_builtin_def(name)
+-
+-#include <sysdeps/arm/armv6t2/memchr.S>
+diff --git a/sysdeps/arm/armv7/multiarch/memcpy.c b/sysdeps/arm/armv7/multiarch/memcpy.c
+deleted file mode 100644
+index 02776b6f..00000000
+--- a/sysdeps/arm/armv7/multiarch/memcpy.c
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/* Multiple versions of memcpy.
+-   All versions must be listed in ifunc-impl-list.c.
+-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* For __ARM_NEON__ memchr_neon.S defines memchr directly and ifunc
+-   is not used.  */
+-#if IS_IN (libc) && !defined (__ARM_NEON__)
+-# define memcpy __redirect_memcpy
+-# include <string.h>
+-# undef memcpy
+-
+-# include <arm-ifunc.h>
+-
+-# define SYMBOL_NAME memcpy
+-# include "ifunc-memcpy.h"
+-
+-arm_libc_ifunc_redirected (__redirect_memcpy, memcpy, IFUNC_SELECTOR);
+-
+-arm_libc_ifunc_hidden_def (__redirect_memcpy, memcpy);
+-#endif
+diff --git a/sysdeps/arm/armv7/multiarch/memcpy_arm.S b/sysdeps/arm/armv7/multiarch/memcpy_arm.S
+deleted file mode 100644
+index e4a9a68c..00000000
+--- a/sysdeps/arm/armv7/multiarch/memcpy_arm.S
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#define memcpy __memcpy_arm
+-#undef libc_hidden_builtin_def
+-#define libc_hidden_builtin_def(a)
+-#include "memcpy_impl.S"
+-
+-/* These versions of memcpy are defined not to clobber any VFP or NEON
+-   registers so they must always call the ARM variant of the memcpy code.  */
+-strong_alias (__memcpy_arm, __aeabi_memcpy)
+-strong_alias (__memcpy_arm, __aeabi_memcpy4)
+-strong_alias (__memcpy_arm, __aeabi_memcpy8)
+diff --git a/sysdeps/arm/armv7/multiarch/memcpy_impl.S b/sysdeps/arm/armv7/multiarch/memcpy_impl.S
+deleted file mode 100644
+index 2de17263..00000000
+--- a/sysdeps/arm/armv7/multiarch/memcpy_impl.S
++++ /dev/null
+@@ -1,728 +0,0 @@
+-/* NEON/VFP/ARM version of memcpy optimized for Cortex-A15.
+-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.
+-
+-   This memcpy routine is optimised for Cortex-A15 cores and takes advantage
+-   of VFP or NEON when built with the appropriate flags.
+-
+-   Assumptions:
+-
+-    ARMv6 (ARMv7-a if using Neon)
+-    ARM state
+-    Unaligned accesses
+-
+- */
+-
+-/* Thumb cannot encode negative immediate offsets in memory operations.  */
+-#ifndef NO_THUMB
+-#define NO_THUMB
+-#endif
+-#include <sysdep.h>
+-#include <arm-features.h>
+-
+-	.syntax unified
+-	/* This implementation requires ARM state.  */
+-	.arm
+-
+-#ifdef MEMCPY_NEON
+-
+-	.fpu	neon
+-	.arch	armv7-a
+-# define FRAME_SIZE	4
+-# define USE_VFP
+-# define USE_NEON
+-
+-#elif defined (MEMCPY_VFP)
+-
+-	.arch	armv6
+-	.fpu	vfpv2
+-# define FRAME_SIZE	32
+-# define USE_VFP
+-
+-#else
+-	.arch	armv6
+-# define FRAME_SIZE    32
+-
+-#endif
+-
+-#define ALIGN(addr, align) addr:align
+-
+-#define INSN_SIZE	4
+-
+-/* Call parameters.  */
+-#define dstin	r0
+-#define src	r1
+-#define count	r2
+-
+-/* Locals.  */
+-#define tmp1	r3
+-#define dst	ip
+-#define tmp2	r8
+-
+-/* These two macros both work by repeated invocation of the macro
+-   dispatch_step (not defined here).  That macro performs one "step",
+-   doing one load instruction and one store instruction to copy one
+-   "unit".  On entry, TMP1 contains the number of bytes to be copied,
+-   a multiple of the unit size.  The macro clobbers TMP1 in the
+-   process of doing a computed jump to the tail containing the
+-   appropriate number of steps.
+-
+-   In dispatch_7_dword, dispatch_step is invoked seven times, with an
+-   argument that is 7 for the first and 1 for the last.  Units are
+-   double-words (8 bytes).  TMP1 is at most 56.
+-
+-   In dispatch_15_word, dispatch_step is invoked fifteen times,
+-   with an argument that is 15 for the first and 1 for the last.
+-   Units are words (4 bytes).  TMP1 is at most 60.  */
+-
+-#ifndef ARM_ALWAYS_BX
+-# if ARM_BX_ALIGN_LOG2 != 2
+-#  error case not handled
+-# endif
+-	.macro dispatch_7_dword
+-	rsb	tmp1, tmp1, #((7 * 8) - PC_OFS + INSN_SIZE)
+-	add	pc, pc, tmp1
+-	dispatch_step 7
+-	dispatch_step 6
+-	dispatch_step 5
+-	dispatch_step 4
+-	dispatch_step 3
+-	dispatch_step 2
+-	dispatch_step 1
+-	.purgem dispatch_step
+-	.endm
+-
+-	.macro dispatch_15_word
+-	rsb	tmp1, tmp1, #((15 * 4) - PC_OFS/2 + INSN_SIZE/2)
+-	add	pc, pc, tmp1, lsl #1
+-	dispatch_step 15
+-	dispatch_step 14
+-	dispatch_step 13
+-	dispatch_step 12
+-	dispatch_step 11
+-	dispatch_step 10
+-	dispatch_step 9
+-	dispatch_step 8
+-	dispatch_step 7
+-	dispatch_step 6
+-	dispatch_step 5
+-	dispatch_step 4
+-	dispatch_step 3
+-	dispatch_step 2
+-	dispatch_step 1
+-	.purgem dispatch_step
+-	.endm
+-#else
+-# if ARM_BX_ALIGN_LOG2 < 3
+-#  error case not handled
+-# endif
+-	.macro dispatch_helper steps, log2_bytes_per_step
+-	/* TMP1 gets (max_bytes - bytes_to_copy), where max_bytes is
+-	   (STEPS << LOG2_BYTES_PER_STEP).
+-	   So this is (steps_to_skip << LOG2_BYTES_PER_STEP).
+-	   Then it needs further adjustment to compensate for the
+-	   distance between the PC value taken below (0f + PC_OFS)
+-	   and the first step's instructions (1f).  */
+-	rsb	tmp1, tmp1, #((\steps << \log2_bytes_per_step) \
+-			      + ((1f - PC_OFS - 0f) \
+-				 >> (ARM_BX_ALIGN_LOG2 - \log2_bytes_per_step)))
+-	/* Shifting down LOG2_BYTES_PER_STEP gives us the number of
+-	   steps to skip, then shifting up ARM_BX_ALIGN_LOG2 gives us
+-	   the (byte) distance to add to the PC.  */
+-0:	add	tmp1, pc, tmp1, lsl #(ARM_BX_ALIGN_LOG2 - \log2_bytes_per_step)
+-	bx	tmp1
+-	.p2align ARM_BX_ALIGN_LOG2
+-1:
+-	.endm
+-
+-	.macro dispatch_7_dword
+-	dispatch_helper 7, 3
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 7
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 6
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 5
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 4
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 3
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 2
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 1
+-	.p2align ARM_BX_ALIGN_LOG2
+-	.purgem dispatch_step
+-	.endm
+-
+-	.macro dispatch_15_word
+-	dispatch_helper 15, 2
+-	dispatch_step 15
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 14
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 13
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 12
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 11
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 10
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 9
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 8
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 7
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 6
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 5
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 4
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 3
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 2
+-	.p2align ARM_BX_ALIGN_LOG2
+-	dispatch_step 1
+-	.p2align ARM_BX_ALIGN_LOG2
+-	.purgem dispatch_step
+-	.endm
+-
+-#endif
+-
+-#ifndef USE_NEON
+-/* For bulk copies using GP registers.  */
+-#define	A_l	r2		/* Call-clobbered.  */
+-#define	A_h	r3		/* Call-clobbered.  */
+-#define	B_l	r4
+-#define	B_h	r5
+-#define	C_l	r6
+-#define	C_h	r7
+-/* Don't use the pair r8,r9 because in some EABI variants r9 is reserved.  */
+-#define	D_l	r10
+-#define	D_h	r11
+-#endif
+-
+-/* Number of lines ahead to pre-fetch data.  If you change this the code
+-   below will need adjustment to compensate.  */
+-
+-#define prefetch_lines	5
+-
+-#ifdef USE_VFP
+-	.macro	cpy_line_vfp vreg, base
+-	vstr	\vreg, [dst, #\base]
+-	vldr	\vreg, [src, #\base]
+-	vstr	d0, [dst, #\base + 8]
+-	vldr	d0, [src, #\base + 8]
+-	vstr	d1, [dst, #\base + 16]
+-	vldr	d1, [src, #\base + 16]
+-	vstr	d2, [dst, #\base + 24]
+-	vldr	d2, [src, #\base + 24]
+-	vstr	\vreg, [dst, #\base + 32]
+-	vldr	\vreg, [src, #\base + prefetch_lines * 64 - 32]
+-	vstr	d0, [dst, #\base + 40]
+-	vldr	d0, [src, #\base + 40]
+-	vstr	d1, [dst, #\base + 48]
+-	vldr	d1, [src, #\base + 48]
+-	vstr	d2, [dst, #\base + 56]
+-	vldr	d2, [src, #\base + 56]
+-	.endm
+-
+-	.macro	cpy_tail_vfp vreg, base
+-	vstr	\vreg, [dst, #\base]
+-	vldr	\vreg, [src, #\base]
+-	vstr	d0, [dst, #\base + 8]
+-	vldr	d0, [src, #\base + 8]
+-	vstr	d1, [dst, #\base + 16]
+-	vldr	d1, [src, #\base + 16]
+-	vstr	d2, [dst, #\base + 24]
+-	vldr	d2, [src, #\base + 24]
+-	vstr	\vreg, [dst, #\base + 32]
+-	vstr	d0, [dst, #\base + 40]
+-	vldr	d0, [src, #\base + 40]
+-	vstr	d1, [dst, #\base + 48]
+-	vldr	d1, [src, #\base + 48]
+-	vstr	d2, [dst, #\base + 56]
+-	vldr	d2, [src, #\base + 56]
+-	.endm
+-#endif
+-
+-	.p2align 6
+-ENTRY(memcpy)
+-
+-	mov	dst, dstin	/* Preserve dstin, we need to return it.  */
+-	cmp	count, #64
+-	bge	.Lcpy_not_short
+-	/* Deal with small copies quickly by dropping straight into the
+-	   exit block.  */
+-
+-.Ltail63unaligned:
+-#ifdef USE_NEON
+-	/* These need an extra layer of macro just to work around a
+-	   bug in the assembler's parser when an operand starts with
+-	   a {...}.  https://sourceware.org/bugzilla/show_bug.cgi?id=15647
+-	   tracks that bug; it was not fixed as of binutils-2.23.2.  */
+-	.macro neon_load_d0 reg
+-	vld1.8	{d0}, [\reg]!
+-	.endm
+-	.macro neon_store_d0 reg
+-	vst1.8	{d0}, [\reg]!
+-	.endm
+-
+-	and	tmp1, count, #0x38
+-	.macro dispatch_step i
+-	neon_load_d0 src
+-	neon_store_d0 dst
+-	.endm
+-	dispatch_7_dword
+-
+-	tst	count, #4
+-	ldrne	tmp1, [src], #4
+-	strne	tmp1, [dst], #4
+-#else
+-	/* Copy up to 15 full words of data.  May not be aligned.  */
+-	/* Cannot use VFP for unaligned data.  */
+-	and	tmp1, count, #0x3c
+-	add	dst, dst, tmp1
+-	add	src, src, tmp1
+-	/* Jump directly into the sequence below at the correct offset.  */
+-	.macro dispatch_step i
+-	ldr	tmp1, [src, #-(\i * 4)]
+-	str	tmp1, [dst, #-(\i * 4)]
+-	.endm
+-	dispatch_15_word
+-#endif
+-
+-	lsls	count, count, #31
+-	ldrhcs	tmp1, [src], #2
+-	ldrbne	src, [src]		/* Src is dead, use as a scratch.  */
+-	strhcs	tmp1, [dst], #2
+-	strbne	src, [dst]
+-	bx	lr
+-
+-.Lcpy_not_short:
+-	/* At least 64 bytes to copy, but don't know the alignment yet.  */
+-	str	tmp2, [sp, #-FRAME_SIZE]!
+-	cfi_adjust_cfa_offset (FRAME_SIZE)
+-	cfi_rel_offset (tmp2, 0)
+-	cfi_remember_state
+-	and	tmp2, src, #7
+-	and	tmp1, dst, #7
+-	cmp	tmp1, tmp2
+-	bne	.Lcpy_notaligned
+-
+-#ifdef USE_VFP
+-	/* Magic dust alert!  Force VFP on Cortex-A9.  Experiments show
+-	   that the FP pipeline is much better at streaming loads and
+-	   stores.  This is outside the critical loop.  */
+-	vmov.f32	s0, s0
+-#endif
+-
+-	/* SRC and DST have the same mutual 64-bit alignment, but we may
+-	   still need to pre-copy some bytes to get to natural alignment.
+-	   We bring SRC and DST into full 64-bit alignment.  */
+-	lsls	tmp2, dst, #29
+-	beq	1f
+-	rsbs	tmp2, tmp2, #0
+-	sub	count, count, tmp2, lsr #29
+-	ldrmi	tmp1, [src], #4
+-	strmi	tmp1, [dst], #4
+-	lsls	tmp2, tmp2, #2
+-	ldrhcs	tmp1, [src], #2
+-	ldrbne	tmp2, [src], #1
+-	strhcs	tmp1, [dst], #2
+-	strbne	tmp2, [dst], #1
+-
+-1:
+-	subs	tmp2, count, #64	/* Use tmp2 for count.  */
+-	blt	.Ltail63aligned
+-
+-	cmp	tmp2, #512
+-	bge	.Lcpy_body_long
+-
+-.Lcpy_body_medium:			/* Count in tmp2.  */
+-#ifdef USE_VFP
+-1:
+-	vldr	d0, [src, #0]
+-	subs	tmp2, tmp2, #64
+-	vldr	d1, [src, #8]
+-	vstr	d0, [dst, #0]
+-	vldr	d0, [src, #16]
+-	vstr	d1, [dst, #8]
+-	vldr	d1, [src, #24]
+-	vstr	d0, [dst, #16]
+-	vldr	d0, [src, #32]
+-	vstr	d1, [dst, #24]
+-	vldr	d1, [src, #40]
+-	vstr	d0, [dst, #32]
+-	vldr	d0, [src, #48]
+-	vstr	d1, [dst, #40]
+-	vldr	d1, [src, #56]
+-	vstr	d0, [dst, #48]
+-	add	src, src, #64
+-	vstr	d1, [dst, #56]
+-	add	dst, dst, #64
+-	bge	1b
+-	tst	tmp2, #0x3f
+-	beq	.Ldone
+-
+-.Ltail63aligned:			/* Count in tmp2.  */
+-	and	tmp1, tmp2, #0x38
+-	add	dst, dst, tmp1
+-	add	src, src, tmp1
+-	.macro dispatch_step i
+-	vldr	d0, [src, #-(\i * 8)]
+-	vstr	d0, [dst, #-(\i * 8)]
+-	.endm
+-	dispatch_7_dword
+-#else
+-	sub	src, src, #8
+-	sub	dst, dst, #8
+-1:
+-	ldrd	A_l, A_h, [src, #8]
+-	strd	A_l, A_h, [dst, #8]
+-	ldrd	A_l, A_h, [src, #16]
+-	strd	A_l, A_h, [dst, #16]
+-	ldrd	A_l, A_h, [src, #24]
+-	strd	A_l, A_h, [dst, #24]
+-	ldrd	A_l, A_h, [src, #32]
+-	strd	A_l, A_h, [dst, #32]
+-	ldrd	A_l, A_h, [src, #40]
+-	strd	A_l, A_h, [dst, #40]
+-	ldrd	A_l, A_h, [src, #48]
+-	strd	A_l, A_h, [dst, #48]
+-	ldrd	A_l, A_h, [src, #56]
+-	strd	A_l, A_h, [dst, #56]
+-	ldrd	A_l, A_h, [src, #64]!
+-	strd	A_l, A_h, [dst, #64]!
+-	subs	tmp2, tmp2, #64
+-	bge	1b
+-	tst	tmp2, #0x3f
+-	bne	1f
+-	ldr	tmp2,[sp], #FRAME_SIZE
+-	cfi_adjust_cfa_offset (-FRAME_SIZE)
+-	cfi_restore (tmp2)
+-	bx	lr
+-
+-	cfi_restore_state
+-	cfi_remember_state
+-1:
+-	add	src, src, #8
+-	add	dst, dst, #8
+-
+-.Ltail63aligned:			/* Count in tmp2.  */
+-	/* Copy up to 7 d-words of data.  Similar to Ltail63unaligned, but
+-	   we know that the src and dest are 64-bit aligned so we can use
+-	   LDRD/STRD to improve efficiency.  */
+-	/* TMP2 is now negative, but we don't care about that.  The bottom
+-	   six bits still tell us how many bytes are left to copy.  */
+-
+-	and	tmp1, tmp2, #0x38
+-	add	dst, dst, tmp1
+-	add	src, src, tmp1
+-	.macro dispatch_step i
+-	ldrd	A_l, A_h, [src, #-(\i * 8)]
+-	strd	A_l, A_h, [dst, #-(\i * 8)]
+-	.endm
+-	dispatch_7_dword
+-#endif
+-
+-	tst	tmp2, #4
+-	ldrne	tmp1, [src], #4
+-	strne	tmp1, [dst], #4
+-	lsls	tmp2, tmp2, #31		/* Count (tmp2) now dead. */
+-	ldrhcs	tmp1, [src], #2
+-	ldrbne	tmp2, [src]
+-	strhcs	tmp1, [dst], #2
+-	strbne	tmp2, [dst]
+-
+-.Ldone:
+-	ldr	tmp2, [sp], #FRAME_SIZE
+-	cfi_adjust_cfa_offset (-FRAME_SIZE)
+-	cfi_restore (tmp2)
+-	bx	lr
+-
+-	cfi_restore_state
+-	cfi_remember_state
+-
+-.Lcpy_body_long:			/* Count in tmp2.  */
+-
+-	/* Long copy.  We know that there's at least (prefetch_lines * 64)
+-	   bytes to go.  */
+-#ifdef USE_VFP
+-	/* Don't use PLD.  Instead, read some data in advance of the current
+-	   copy position into a register.  This should act like a PLD
+-	   operation but we won't have to repeat the transfer.  */
+-
+-	vldr	d3, [src, #0]
+-	vldr	d4, [src, #64]
+-	vldr	d5, [src, #128]
+-	vldr	d6, [src, #192]
+-	vldr	d7, [src, #256]
+-
+-	vldr	d0, [src, #8]
+-	vldr	d1, [src, #16]
+-	vldr	d2, [src, #24]
+-	add	src, src, #32
+-
+-	subs	tmp2, tmp2, #prefetch_lines * 64 * 2
+-	blt	2f
+-1:
+-	cpy_line_vfp	d3, 0
+-	cpy_line_vfp	d4, 64
+-	cpy_line_vfp	d5, 128
+-	add	dst, dst, #3 * 64
+-	add	src, src, #3 * 64
+-	cpy_line_vfp	d6, 0
+-	cpy_line_vfp	d7, 64
+-	add	dst, dst, #2 * 64
+-	add	src, src, #2 * 64
+-	subs	tmp2, tmp2, #prefetch_lines * 64
+-	bge	1b
+-
+-2:
+-	cpy_tail_vfp	d3, 0
+-	cpy_tail_vfp	d4, 64
+-	cpy_tail_vfp	d5, 128
+-	add	src, src, #3 * 64
+-	add	dst, dst, #3 * 64
+-	cpy_tail_vfp	d6, 0
+-	vstr	d7, [dst, #64]
+-	vldr	d7, [src, #64]
+-	vstr	d0, [dst, #64 + 8]
+-	vldr	d0, [src, #64 + 8]
+-	vstr	d1, [dst, #64 + 16]
+-	vldr	d1, [src, #64 + 16]
+-	vstr	d2, [dst, #64 + 24]
+-	vldr	d2, [src, #64 + 24]
+-	vstr	d7, [dst, #64 + 32]
+-	add	src, src, #96
+-	vstr	d0, [dst, #64 + 40]
+-	vstr	d1, [dst, #64 + 48]
+-	vstr	d2, [dst, #64 + 56]
+-	add	dst, dst, #128
+-	add	tmp2, tmp2, #prefetch_lines * 64
+-	b	.Lcpy_body_medium
+-#else
+-	/* Long copy.  Use an SMS style loop to maximize the I/O
+-	   bandwidth of the core.  We don't have enough spare registers
+-	   to synthesise prefetching, so use PLD operations.  */
+-	/* Pre-bias src and dst.  */
+-	sub	src, src, #8
+-	sub	dst, dst, #8
+-	pld	[src, #8]
+-	pld	[src, #72]
+-	subs	tmp2, tmp2, #64
+-	pld	[src, #136]
+-	ldrd	A_l, A_h, [src, #8]
+-	strd	B_l, B_h, [sp, #8]
+-	cfi_rel_offset (B_l, 8)
+-	cfi_rel_offset (B_h, 12)
+-	ldrd	B_l, B_h, [src, #16]
+-	strd	C_l, C_h, [sp, #16]
+-	cfi_rel_offset (C_l, 16)
+-	cfi_rel_offset (C_h, 20)
+-	ldrd	C_l, C_h, [src, #24]
+-	strd	D_l, D_h, [sp, #24]
+-	cfi_rel_offset (D_l, 24)
+-	cfi_rel_offset (D_h, 28)
+-	pld	[src, #200]
+-	ldrd	D_l, D_h, [src, #32]!
+-	b	1f
+-	.p2align	6
+-2:
+-	pld	[src, #232]
+-	strd	A_l, A_h, [dst, #40]
+-	ldrd	A_l, A_h, [src, #40]
+-	strd	B_l, B_h, [dst, #48]
+-	ldrd	B_l, B_h, [src, #48]
+-	strd	C_l, C_h, [dst, #56]
+-	ldrd	C_l, C_h, [src, #56]
+-	strd	D_l, D_h, [dst, #64]!
+-	ldrd	D_l, D_h, [src, #64]!
+-	subs	tmp2, tmp2, #64
+-1:
+-	strd	A_l, A_h, [dst, #8]
+-	ldrd	A_l, A_h, [src, #8]
+-	strd	B_l, B_h, [dst, #16]
+-	ldrd	B_l, B_h, [src, #16]
+-	strd	C_l, C_h, [dst, #24]
+-	ldrd	C_l, C_h, [src, #24]
+-	strd	D_l, D_h, [dst, #32]
+-	ldrd	D_l, D_h, [src, #32]
+-	bcs	2b
+-	/* Save the remaining bytes and restore the callee-saved regs.  */
+-	strd	A_l, A_h, [dst, #40]
+-	add	src, src, #40
+-	strd	B_l, B_h, [dst, #48]
+-	ldrd	B_l, B_h, [sp, #8]
+-	cfi_restore (B_l)
+-	cfi_restore (B_h)
+-	strd	C_l, C_h, [dst, #56]
+-	ldrd	C_l, C_h, [sp, #16]
+-	cfi_restore (C_l)
+-	cfi_restore (C_h)
+-	strd	D_l, D_h, [dst, #64]
+-	ldrd	D_l, D_h, [sp, #24]
+-	cfi_restore (D_l)
+-	cfi_restore (D_h)
+-	add	dst, dst, #72
+-	tst	tmp2, #0x3f
+-	bne	.Ltail63aligned
+-	ldr	tmp2, [sp], #FRAME_SIZE
+-	cfi_adjust_cfa_offset (-FRAME_SIZE)
+-	cfi_restore (tmp2)
+-	bx	lr
+-#endif
+-
+-	cfi_restore_state
+-	cfi_remember_state
+-
+-.Lcpy_notaligned:
+-	pld	[src, #0]
+-	pld	[src, #64]
+-	/* There's at least 64 bytes to copy, but there is no mutual
+-	   alignment.  */
+-	/* Bring DST to 64-bit alignment.  */
+-	lsls	tmp2, dst, #29
+-	pld	[src, #(2 * 64)]
+-	beq	1f
+-	rsbs	tmp2, tmp2, #0
+-	sub	count, count, tmp2, lsr #29
+-	ldrmi	tmp1, [src], #4
+-	strmi	tmp1, [dst], #4
+-	lsls	tmp2, tmp2, #2
+-	ldrbne	tmp1, [src], #1
+-	ldrhcs	tmp2, [src], #2
+-	strbne	tmp1, [dst], #1
+-	strhcs	tmp2, [dst], #2
+-1:
+-	pld	[src, #(3 * 64)]
+-	subs	count, count, #64
+-	ldrmi	tmp2, [sp], #FRAME_SIZE
+-	bmi	.Ltail63unaligned
+-	pld	[src, #(4 * 64)]
+-
+-#ifdef USE_NEON
+-	/* These need an extra layer of macro just to work around a
+-	   bug in the assembler's parser when an operand starts with
+-	   a {...}.  */
+-	.macro neon_load_multi reglist, basereg
+-	vld1.8	{\reglist}, [\basereg]!
+-	.endm
+-	.macro neon_store_multi reglist, basereg
+-	vst1.8	{\reglist}, [ALIGN (\basereg, 64)]!
+-	.endm
+-
+-	neon_load_multi d0-d3, src
+-	neon_load_multi d4-d7, src
+-	subs	count, count, #64
+-	bmi	2f
+-1:
+-	pld	[src, #(4 * 64)]
+-	neon_store_multi d0-d3, dst
+-	neon_load_multi d0-d3, src
+-	neon_store_multi d4-d7, dst
+-	neon_load_multi d4-d7, src
+-	subs	count, count, #64
+-	bpl	1b
+-2:
+-	neon_store_multi d0-d3, dst
+-	neon_store_multi d4-d7, dst
+-	ands	count, count, #0x3f
+-#else
+-	/* Use an SMS style loop to maximize the I/O bandwidth.  */
+-	sub	src, src, #4
+-	sub	dst, dst, #8
+-	subs	tmp2, count, #64	/* Use tmp2 for count.  */
+-	ldr	A_l, [src, #4]
+-	ldr	A_h, [src, #8]
+-	strd	B_l, B_h, [sp, #8]
+-	cfi_rel_offset (B_l, 8)
+-	cfi_rel_offset (B_h, 12)
+-	ldr	B_l, [src, #12]
+-	ldr	B_h, [src, #16]
+-	strd	C_l, C_h, [sp, #16]
+-	cfi_rel_offset (C_l, 16)
+-	cfi_rel_offset (C_h, 20)
+-	ldr	C_l, [src, #20]
+-	ldr	C_h, [src, #24]
+-	strd	D_l, D_h, [sp, #24]
+-	cfi_rel_offset (D_l, 24)
+-	cfi_rel_offset (D_h, 28)
+-	ldr	D_l, [src, #28]
+-	ldr	D_h, [src, #32]!
+-	b	1f
+-	.p2align	6
+-2:
+-	pld	[src, #(5 * 64) - (32 - 4)]
+-	strd	A_l, A_h, [dst, #40]
+-	ldr	A_l, [src, #36]
+-	ldr	A_h, [src, #40]
+-	strd	B_l, B_h, [dst, #48]
+-	ldr	B_l, [src, #44]
+-	ldr	B_h, [src, #48]
+-	strd	C_l, C_h, [dst, #56]
+-	ldr	C_l, [src, #52]
+-	ldr	C_h, [src, #56]
+-	strd	D_l, D_h, [dst, #64]!
+-	ldr	D_l, [src, #60]
+-	ldr	D_h, [src, #64]!
+-	subs	tmp2, tmp2, #64
+-1:
+-	strd	A_l, A_h, [dst, #8]
+-	ldr	A_l, [src, #4]
+-	ldr	A_h, [src, #8]
+-	strd	B_l, B_h, [dst, #16]
+-	ldr	B_l, [src, #12]
+-	ldr	B_h, [src, #16]
+-	strd	C_l, C_h, [dst, #24]
+-	ldr	C_l, [src, #20]
+-	ldr	C_h, [src, #24]
+-	strd	D_l, D_h, [dst, #32]
+-	ldr	D_l, [src, #28]
+-	ldr	D_h, [src, #32]
+-	bcs	2b
+-
+-	/* Save the remaining bytes and restore the callee-saved regs.  */
+-	strd	A_l, A_h, [dst, #40]
+-	add	src, src, #36
+-	strd	B_l, B_h, [dst, #48]
+-	ldrd	B_l, B_h, [sp, #8]
+-	cfi_restore (B_l)
+-	cfi_restore (B_h)
+-	strd	C_l, C_h, [dst, #56]
+-	ldrd	C_l, C_h, [sp, #16]
+-	cfi_restore (C_l)
+-	cfi_restore (C_h)
+-	strd	D_l, D_h, [dst, #64]
+-	ldrd	D_l, D_h, [sp, #24]
+-	cfi_restore (D_l)
+-	cfi_restore (D_h)
+-	add	dst, dst, #72
+-	ands	count, tmp2, #0x3f
+-#endif
+-	ldr	tmp2, [sp], #FRAME_SIZE
+-	cfi_adjust_cfa_offset (-FRAME_SIZE)
+-	cfi_restore (tmp2)
+-	bne	.Ltail63unaligned
+-	bx	lr
+-
+-END(memcpy)
+-libc_hidden_builtin_def (memcpy)
+diff --git a/sysdeps/arm/armv7/multiarch/memcpy_neon.S b/sysdeps/arm/armv7/multiarch/memcpy_neon.S
+deleted file mode 100644
+index 1a8d8bbe..00000000
+--- a/sysdeps/arm/armv7/multiarch/memcpy_neon.S
++++ /dev/null
+@@ -1,9 +0,0 @@
+-/* For __ARM_NEON__ this file defines memcpy.  */
+-#ifndef __ARM_NEON__
+-# define memcpy __memcpy_neon
+-# undef libc_hidden_builtin_def
+-# define libc_hidden_builtin_def(a)
+-#endif
+-
+-#define MEMCPY_NEON
+-#include "memcpy_impl.S"
+diff --git a/sysdeps/arm/armv7/multiarch/memcpy_vfp.S b/sysdeps/arm/armv7/multiarch/memcpy_vfp.S
+deleted file mode 100644
+index d1e9ede4..00000000
+--- a/sysdeps/arm/armv7/multiarch/memcpy_vfp.S
++++ /dev/null
+@@ -1,9 +0,0 @@
+-/* Under __ARM_NEON__ memcpy_neon.S defines memcpy directly
+-   and the __memcpy_vfp code will never be used.  */
+-#ifndef __ARM_NEON__
+-# define MEMCPY_VFP
+-# define memcpy __memcpy_vfp
+-# undef libc_hidden_builtin_def
+-# define libc_hidden_builtin_def(a)
+-# include "memcpy_impl.S"
+-#endif
+diff --git a/sysdeps/arm/armv7/multiarch/rtld-memchr.S b/sysdeps/arm/armv7/multiarch/rtld-memchr.S
+deleted file mode 100644
+index ae8e5f04..00000000
+--- a/sysdeps/arm/armv7/multiarch/rtld-memchr.S
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <sysdeps/arm/armv6t2/memchr.S>
+diff --git a/sysdeps/arm/armv7/multiarch/rtld-memcpy.S b/sysdeps/arm/armv7/multiarch/rtld-memcpy.S
+deleted file mode 100644
+index ca238753..00000000
+--- a/sysdeps/arm/armv7/multiarch/rtld-memcpy.S
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <sysdeps/arm/armv7/multiarch/memcpy_impl.S>
+diff --git a/sysdeps/arm/armv7/strcmp.S b/sysdeps/arm/armv7/strcmp.S
+deleted file mode 100644
+index 060b8656..00000000
+--- a/sysdeps/arm/armv7/strcmp.S
++++ /dev/null
+@@ -1,519 +0,0 @@
+-/* strcmp implementation for ARMv7-A, optimized for Cortex-A15.
+-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <arm-features.h>
+-#include <sysdep.h>
+-
+-/* Implementation of strcmp for ARMv7 when DSP instructions are
+-   available.  Use ldrd to support wider loads, provided the data
+-   is sufficiently aligned.  Use saturating arithmetic to optimize
+-   the compares.  */
+-
+-/* Build Options:
+-   STRCMP_PRECHECK: Run a quick pre-check of the first byte in the
+-   string.  If comparing completely random strings the pre-check will
+-   save time, since there is a very high probability of a mismatch in
+-   the first character: we save significant overhead if this is the
+-   common case.  However, if strings are likely to be identical (e.g.
+-   because we're verifying a hit in a hash table), then this check
+-   is largely redundant.  */
+-
+-#define STRCMP_PRECHECK	1
+-
+-	.syntax unified
+-
+-#ifdef __ARM_BIG_ENDIAN
+-# define S2LO lsl
+-# define S2LOEQ lsleq
+-# define S2HI lsr
+-# define MSB 0x000000ff
+-# define LSB 0xff000000
+-# define BYTE0_OFFSET 24
+-# define BYTE1_OFFSET 16
+-# define BYTE2_OFFSET 8
+-# define BYTE3_OFFSET 0
+-#else /* not  __ARM_BIG_ENDIAN */
+-# define S2LO lsr
+-# define S2LOEQ lsreq
+-# define S2HI lsl
+-# define BYTE0_OFFSET 0
+-# define BYTE1_OFFSET 8
+-# define BYTE2_OFFSET 16
+-# define BYTE3_OFFSET 24
+-# define MSB 0xff000000
+-# define LSB 0x000000ff
+-#endif /* not  __ARM_BIG_ENDIAN */
+-
+-/* Parameters and result.  */
+-#define src1		r0
+-#define src2		r1
+-#define result		r0	/* Overlaps src1.  */
+-
+-/* Internal variables.  */
+-#define tmp1		r4
+-#define tmp2		r5
+-#define const_m1	r12
+-
+-/* Additional internal variables for 64-bit aligned data.  */
+-#define data1a		r2
+-#define data1b		r3
+-#define data2a		r6
+-#define data2b		r7
+-#define syndrome_a	tmp1
+-#define syndrome_b	tmp2
+-
+-/* Additional internal variables for 32-bit aligned data.  */
+-#define data1		r2
+-#define data2		r3
+-#define syndrome	tmp2
+-
+-
+-#ifndef NO_THUMB
+-/* This code is best on Thumb.  */
+-	.thumb
+-
+-/* In Thumb code we can't use MVN with a register shift, but we do have ORN.  */
+-.macro prepare_mask mask_reg, nbits_reg
+-	S2HI \mask_reg, const_m1, \nbits_reg
+-.endm
+-.macro apply_mask data_reg, mask_reg
+-	orn \data_reg, \data_reg, \mask_reg
+-.endm
+-#else
+-/* In ARM code we don't have ORN, but we can use MVN with a register shift.  */
+-.macro prepare_mask mask_reg, nbits_reg
+-	mvn \mask_reg, const_m1, S2HI \nbits_reg
+-.endm
+-.macro apply_mask data_reg, mask_reg
+-	orr \data_reg, \data_reg, \mask_reg
+-.endm
+-
+-/* These clobber the condition codes, which the real Thumb cbz/cbnz
+-   instructions do not.  But it doesn't matter for any of the uses here.  */
+-.macro cbz reg, label
+-	cmp \reg, #0
+-	beq \label
+-.endm
+-.macro cbnz reg, label
+-	cmp \reg, #0
+-	bne \label
+-.endm
+-#endif
+-
+-
+-	/* Macro to compute and return the result value for word-aligned
+-	   cases.  */
+-	.macro strcmp_epilogue_aligned synd d1 d2 restore_r6
+-#ifdef __ARM_BIG_ENDIAN
+-	/* If data1 contains a zero byte, then syndrome will contain a 1 in
+-	   bit 7 of that byte.  Otherwise, the highest set bit in the
+-	   syndrome will highlight the first different bit.  It is therefore
+-	   sufficient to extract the eight bits starting with the syndrome
+-	   bit.  */
+-	clz	tmp1, \synd
+-	lsl	r1, \d2, tmp1
+-	.if \restore_r6
+-	ldrd	r6, r7, [sp, #8]
+-	.endif
+-	lsl	\d1, \d1, tmp1
+-	lsr	result, \d1, #24
+-	ldrd	r4, r5, [sp], #16
+-	cfi_remember_state
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	sub	result, result, r1, lsr #24
+-	bx	lr
+-#else
+-	/* To use the big-endian trick we'd have to reverse all three words.
+-	   that's slower than this approach.  */
+-	rev	\synd, \synd
+-	clz	tmp1, \synd
+-	bic	tmp1, tmp1, #7
+-	lsr	r1, \d2, tmp1
+-	.if \restore_r6
+-	ldrd	r6, r7, [sp, #8]
+-	.endif
+-	lsr	\d1, \d1, tmp1
+-	and	result, \d1, #255
+-	and	r1, r1, #255
+-	ldrd	r4, r5, [sp], #16
+-	cfi_remember_state
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	sub	result, result, r1
+-
+-	bx	lr
+-#endif
+-	.endm
+-
+-	.text
+-	.p2align	5
+-.Lstrcmp_start_addr:
+-#if STRCMP_PRECHECK == 1
+-.Lfastpath_exit:
+-	sub	r0, r2, r3
+-	bx	lr
+-	nop
+-#endif
+-ENTRY (strcmp)
+-#if STRCMP_PRECHECK == 1
+-	ldrb	r2, [src1]
+-	ldrb	r3, [src2]
+-	cmp	r2, #1
+-	it	cs
+-	cmpcs	r2, r3
+-	bne	.Lfastpath_exit
+-#endif
+-	strd	r4, r5, [sp, #-16]!
+-	cfi_def_cfa_offset (16)
+-	cfi_offset (r4, -16)
+-	cfi_offset (r5, -12)
+-	orr	tmp1, src1, src2
+-	strd	r6, r7, [sp, #8]
+-	cfi_offset (r6, -8)
+-	cfi_offset (r7, -4)
+-	mvn	const_m1, #0
+-	lsl	r2, tmp1, #29
+-	cbz	r2, .Lloop_aligned8
+-
+-.Lnot_aligned:
+-	eor	tmp1, src1, src2
+-	tst	tmp1, #7
+-	bne	.Lmisaligned8
+-
+-	/* Deal with mutual misalignment by aligning downwards and then
+-	   masking off the unwanted loaded data to prevent a difference.  */
+-	and	tmp1, src1, #7
+-	bic	src1, src1, #7
+-	and	tmp2, tmp1, #3
+-	bic	src2, src2, #7
+-	lsl	tmp2, tmp2, #3	/* Bytes -> bits.  */
+-	ldrd	data1a, data1b, [src1], #16
+-	tst	tmp1, #4
+-	ldrd	data2a, data2b, [src2], #16
+-	prepare_mask tmp1, tmp2
+-	apply_mask data1a, tmp1
+-	apply_mask data2a, tmp1
+-	beq	.Lstart_realigned8
+-	apply_mask data1b, tmp1
+-	mov	data1a, const_m1
+-	apply_mask data2b, tmp1
+-	mov	data2a, const_m1
+-	b	.Lstart_realigned8
+-
+-	/* Unwind the inner loop by a factor of 2, giving 16 bytes per
+-	   pass.  */
+-	.p2align 5,,12  /* Don't start in the tail bytes of a cache line.  */
+-	.p2align 2	/* Always word aligned.  */
+-.Lloop_aligned8:
+-	ldrd	data1a, data1b, [src1], #16
+-	ldrd	data2a, data2b, [src2], #16
+-.Lstart_realigned8:
+-	uadd8	syndrome_b, data1a, const_m1	/* Only want GE bits,  */
+-	eor	syndrome_a, data1a, data2a
+-	sel	syndrome_a, syndrome_a, const_m1
+-	cbnz	syndrome_a, .Ldiff_in_a
+-	uadd8	syndrome_b, data1b, const_m1	/* Only want GE bits.  */
+-	eor	syndrome_b, data1b, data2b
+-	sel	syndrome_b, syndrome_b, const_m1
+-	cbnz	syndrome_b, .Ldiff_in_b
+-
+-	ldrd	data1a, data1b, [src1, #-8]
+-	ldrd	data2a, data2b, [src2, #-8]
+-	uadd8	syndrome_b, data1a, const_m1	/* Only want GE bits,  */
+-	eor	syndrome_a, data1a, data2a
+-	sel	syndrome_a, syndrome_a, const_m1
+-	uadd8	syndrome_b, data1b, const_m1	/* Only want GE bits.  */
+-	eor	syndrome_b, data1b, data2b
+-	sel	syndrome_b, syndrome_b, const_m1
+-	/* Can't use CBZ for backwards branch.  */
+-	orrs	syndrome_b, syndrome_b, syndrome_a /* Only need if s_a == 0 */
+-	beq	.Lloop_aligned8
+-
+-.Ldiff_found:
+-	cbnz	syndrome_a, .Ldiff_in_a
+-
+-.Ldiff_in_b:
+-	strcmp_epilogue_aligned syndrome_b, data1b, data2b 1
+-
+-.Ldiff_in_a:
+-	cfi_restore_state
+-	strcmp_epilogue_aligned syndrome_a, data1a, data2a 1
+-
+-	cfi_restore_state
+-.Lmisaligned8:
+-	tst	tmp1, #3
+-	bne	.Lmisaligned4
+-	ands	tmp1, src1, #3
+-	bne	.Lmutual_align4
+-
+-	/* Unrolled by a factor of 2, to reduce the number of post-increment
+-	   operations.  */
+-.Lloop_aligned4:
+-	ldr	data1, [src1], #8
+-	ldr	data2, [src2], #8
+-.Lstart_realigned4:
+-	uadd8	syndrome, data1, const_m1	/* Only need GE bits.  */
+-	eor	syndrome, data1, data2
+-	sel	syndrome, syndrome, const_m1
+-	cbnz	syndrome, .Laligned4_done
+-	ldr	data1, [src1, #-4]
+-	ldr	data2, [src2, #-4]
+-	uadd8	syndrome, data1, const_m1
+-	eor	syndrome, data1, data2
+-	sel	syndrome, syndrome, const_m1
+-	cmp	syndrome, #0
+-	beq	.Lloop_aligned4
+-
+-.Laligned4_done:
+-	strcmp_epilogue_aligned syndrome, data1, data2, 0
+-
+-.Lmutual_align4:
+-	cfi_restore_state
+-	/* Deal with mutual misalignment by aligning downwards and then
+-	   masking off the unwanted loaded data to prevent a difference.  */
+-	lsl	tmp1, tmp1, #3	/* Bytes -> bits.  */
+-	bic	src1, src1, #3
+-	ldr	data1, [src1], #8
+-	bic	src2, src2, #3
+-	ldr	data2, [src2], #8
+-
+-	prepare_mask tmp1, tmp1
+-	apply_mask data1, tmp1
+-	apply_mask data2, tmp1
+-	b	.Lstart_realigned4
+-
+-.Lmisaligned4:
+-	ands	tmp1, src1, #3
+-	beq	.Lsrc1_aligned
+-	sub	src2, src2, tmp1
+-	bic	src1, src1, #3
+-	lsls	tmp1, tmp1, #31
+-	ldr	data1, [src1], #4
+-	beq	.Laligned_m2
+-	bcs	.Laligned_m1
+-
+-#if STRCMP_PRECHECK == 0
+-	ldrb	data2, [src2, #1]
+-	uxtb	tmp1, data1, ror #BYTE1_OFFSET
+-	subs	tmp1, tmp1, data2
+-	bne	.Lmisaligned_exit
+-	cbz	data2, .Lmisaligned_exit
+-
+-.Laligned_m2:
+-	ldrb	data2, [src2, #2]
+-	uxtb	tmp1, data1, ror #BYTE2_OFFSET
+-	subs	tmp1, tmp1, data2
+-	bne	.Lmisaligned_exit
+-	cbz	data2, .Lmisaligned_exit
+-
+-.Laligned_m1:
+-	ldrb	data2, [src2, #3]
+-	uxtb	tmp1, data1, ror #BYTE3_OFFSET
+-	subs	tmp1, tmp1, data2
+-	bne	.Lmisaligned_exit
+-	add	src2, src2, #4
+-	cbnz	data2, .Lsrc1_aligned
+-#else  /* STRCMP_PRECHECK */
+-	/* If we've done the pre-check, then we don't need to check the
+-	   first byte again here.  */
+-	ldrb	data2, [src2, #2]
+-	uxtb	tmp1, data1, ror #BYTE2_OFFSET
+-	subs	tmp1, tmp1, data2
+-	bne	.Lmisaligned_exit
+-	cbz	data2, .Lmisaligned_exit
+-
+-.Laligned_m2:
+-	ldrb	data2, [src2, #3]
+-	uxtb	tmp1, data1, ror #BYTE3_OFFSET
+-	subs	tmp1, tmp1, data2
+-	bne	.Lmisaligned_exit
+-	cbnz	data2, .Laligned_m1
+-#endif
+-
+-.Lmisaligned_exit:
+-	mov	result, tmp1
+-	ldr	r4, [sp], #16
+-	cfi_remember_state
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	bx	lr
+-
+-#if STRCMP_PRECHECK == 1
+-.Laligned_m1:
+-	add	src2, src2, #4
+-#endif
+-.Lsrc1_aligned:
+-	cfi_restore_state
+-	/* src1 is word aligned, but src2 has no common alignment
+-	   with it.  */
+-	ldr	data1, [src1], #4
+-	lsls	tmp1, src2, #31		/* C=src2[1], Z=src2[0].  */
+-
+-	bic	src2, src2, #3
+-	ldr	data2, [src2], #4
+-	bhi	.Loverlap1		/* C=1, Z=0 => src2[1:0] = 0b11.  */
+-	bcs	.Loverlap2		/* C=1, Z=1 => src2[1:0] = 0b10.  */
+-
+-	/* (overlap3) C=0, Z=0 => src2[1:0] = 0b01.  */
+-.Loverlap3:
+-	bic	tmp1, data1, #MSB
+-	uadd8	syndrome, data1, const_m1
+-	eors	syndrome, tmp1, data2, S2LO #8
+-	sel	syndrome, syndrome, const_m1
+-	bne	4f
+-	cbnz	syndrome, 5f
+-	ldr	data2, [src2], #4
+-	eor	tmp1, tmp1, data1
+-	cmp	tmp1, data2, S2HI #24
+-	bne	6f
+-	ldr	data1, [src1], #4
+-	b	.Loverlap3
+-4:
+-	S2LO	data2, data2, #8
+-	b	.Lstrcmp_tail
+-
+-5:
+-	bics	syndrome, syndrome, #MSB
+-	bne	.Lstrcmp_done_equal
+-
+-	/* We can only get here if the MSB of data1 contains 0, so
+-	   fast-path the exit.  */
+-	ldrb	result, [src2]
+-	ldrd	r4, r5, [sp], #16
+-	cfi_remember_state
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	/* R6/7 Not used in this sequence.  */
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	neg	result, result
+-	bx	lr
+-
+-6:
+-	cfi_restore_state
+-	S2LO	data1, data1, #24
+-	and	data2, data2, #LSB
+-	b	.Lstrcmp_tail
+-
+-	.p2align 5,,12	/* Ensure at least 3 instructions in cache line.  */
+-.Loverlap2:
+-	and	tmp1, data1, const_m1, S2LO #16
+-	uadd8	syndrome, data1, const_m1
+-	eors	syndrome, tmp1, data2, S2LO #16
+-	sel	syndrome, syndrome, const_m1
+-	bne	4f
+-	cbnz	syndrome, 5f
+-	ldr	data2, [src2], #4
+-	eor	tmp1, tmp1, data1
+-	cmp	tmp1, data2, S2HI #16
+-	bne	6f
+-	ldr	data1, [src1], #4
+-	b	.Loverlap2
+-4:
+-	S2LO	data2, data2, #16
+-	b	.Lstrcmp_tail
+-5:
+-	ands	syndrome, syndrome, const_m1, S2LO #16
+-	bne	.Lstrcmp_done_equal
+-
+-	ldrh	data2, [src2]
+-	S2LO	data1, data1, #16
+-#ifdef __ARM_BIG_ENDIAN
+-	lsl	data2, data2, #16
+-#endif
+-	b	.Lstrcmp_tail
+-
+-6:
+-	S2LO	data1, data1, #16
+-	and	data2, data2, const_m1, S2LO #16
+-	b	.Lstrcmp_tail
+-
+-	.p2align 5,,12	/* Ensure at least 3 instructions in cache line.  */
+-.Loverlap1:
+-	and	tmp1, data1, #LSB
+-	uadd8	syndrome, data1, const_m1
+-	eors	syndrome, tmp1, data2, S2LO #24
+-	sel	syndrome, syndrome, const_m1
+-	bne	4f
+-	cbnz	syndrome, 5f
+-	ldr	data2, [src2], #4
+-	eor	tmp1, tmp1, data1
+-	cmp	tmp1, data2, S2HI #8
+-	bne	6f
+-	ldr	data1, [src1], #4
+-	b	.Loverlap1
+-4:
+-	S2LO	data2, data2, #24
+-	b	.Lstrcmp_tail
+-5:
+-	tst	syndrome, #LSB
+-	bne	.Lstrcmp_done_equal
+-	ldr	data2, [src2]
+-6:
+-	S2LO	data1, data1, #8
+-	bic	data2, data2, #MSB
+-	b	.Lstrcmp_tail
+-
+-.Lstrcmp_done_equal:
+-	mov	result, #0
+-	ldrd	r4, r5, [sp], #16
+-	cfi_remember_state
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	/* R6/7 not used in this sequence.  */
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	bx	lr
+-
+-.Lstrcmp_tail:
+-	cfi_restore_state
+-#ifndef __ARM_BIG_ENDIAN
+-	rev	data1, data1
+-	rev	data2, data2
+-	/* Now everything looks big-endian...  */
+-#endif
+-	uadd8	tmp1, data1, const_m1
+-	eor	tmp1, data1, data2
+-	sel	syndrome, tmp1, const_m1
+-	clz	tmp1, syndrome
+-	lsl	data1, data1, tmp1
+-	lsl	data2, data2, tmp1
+-	lsr	result, data1, #24
+-	ldrd	r4, r5, [sp], #16
+-	cfi_def_cfa_offset (0)
+-	cfi_restore (r4)
+-	cfi_restore (r5)
+-	/* R6/7 not used in this sequence.  */
+-	cfi_restore (r6)
+-	cfi_restore (r7)
+-	sub	result, result, data2, lsr #24
+-	bx	lr
+-END (strcmp)
+-libc_hidden_builtin_def (strcmp)
+diff --git a/sysdeps/arm/memcpy.S b/sysdeps/arm/memcpy.S
+deleted file mode 100644
+index cba86098..00000000
+--- a/sysdeps/arm/memcpy.S
++++ /dev/null
+@@ -1,320 +0,0 @@
+-/* Copyright (C) 2006-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   Contributed by MontaVista Software, Inc. (written by Nicolas Pitre)
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* Thumb requires excessive IT insns here.  */
+-#define NO_THUMB
+-#include <sysdep.h>
+-#include <arm-features.h>
+-
+-/*
+- * Data preload for architectures that support it (ARM V5TE and above)
+- */
+-#if (!defined (__ARM_ARCH_2__) && !defined (__ARM_ARCH_3__) \
+-     && !defined (__ARM_ARCH_3M__) && !defined (__ARM_ARCH_4__) \
+-     && !defined (__ARM_ARCH_4T__) && !defined (__ARM_ARCH_5__) \
+-     && !defined (__ARM_ARCH_5T__))
+-#define PLD(code...)    code
+-#else
+-#define PLD(code...)
+-#endif
+-
+-/*
+- * This can be used to enable code to cacheline align the source pointer.
+- * Experiments on tested architectures (StrongARM and XScale) didn't show
+- * this a worthwhile thing to do.  That might be different in the future.
+- */
+-//#define CALGN(code...)        code
+-#define CALGN(code...)
+-
+-/*
+- * Endian independent macros for shifting bytes within registers.
+- */
+-#ifndef __ARMEB__
+-#define PULL            lsr
+-#define PUSH            lsl
+-#else
+-#define PULL            lsl
+-#define PUSH            lsr
+-#endif
+-
+-		.text
+-		.syntax unified
+-
+-/* Prototype: void *memcpy(void *dest, const void *src, size_t n); */
+-
+-ENTRY(memcpy)
+-
+-		push	{r0, r4, lr}
+-		cfi_adjust_cfa_offset (12)
+-		cfi_rel_offset (r4, 4)
+-		cfi_rel_offset (lr, 8)
+-
+-		cfi_remember_state
+-
+-		subs	r2, r2, #4
+-		blt	8f
+-		ands	ip, r0, #3
+-	PLD(	pld	[r1, #0]		)
+-		bne	9f
+-		ands	ip, r1, #3
+-		bne	10f
+-
+-1:		subs	r2, r2, #(28)
+-		push	{r5 - r8}
+-		cfi_adjust_cfa_offset (16)
+-		cfi_rel_offset (r5, 0)
+-		cfi_rel_offset (r6, 4)
+-		cfi_rel_offset (r7, 8)
+-		cfi_rel_offset (r8, 12)
+-		blt	5f
+-
+-	CALGN(	ands	ip, r1, #31		)
+-	CALGN(	rsb	r3, ip, #32		)
+-	CALGN(	sbcsne	r4, r3, r2		)  @ C is always set here
+-	CALGN(	bcs	2f			)
+-	CALGN(	adr	r4, 6f			)
+-	CALGN(	subs	r2, r2, r3		)  @ C gets set
+-#ifndef ARM_ALWAYS_BX
+-	CALGN(	add	pc, r4, ip, lsl	#(ARM_BX_ALIGN_LOG2 - 2))
+-#else
+-	CALGN(	add	r4, r4, ip, lsl	#(ARM_BX_ALIGN_LOG2 - 2))
+-	CALGN(	bx	r4			)
+-#endif
+-
+-	PLD(	pld	[r1, #0]		)
+-2:	PLD(	subs	r2, r2, #96		)
+-	PLD(	pld	[r1, #28]		)
+-	PLD(	blt	4f			)
+-	PLD(	pld	[r1, #60]		)
+-	PLD(	pld	[r1, #92]		)
+-
+-3:	PLD(	pld	[r1, #124]		)
+-4:		ldmia	r1!, {r3, r4, r5, r6, r7, r8, ip, lr}
+-		subs	r2, r2, #32
+-		stmia	r0!, {r3, r4, r5, r6, r7, r8, ip, lr}
+-		bge	3b
+-	PLD(	cmn	r2, #96			)
+-	PLD(	bge	4b			)
+-
+-5:		ands	ip, r2, #28
+-		rsb	ip, ip, #32
+-#ifndef ARM_ALWAYS_BX
+-		/* C is always clear here.  */
+-		addne	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		b	7f
+-#else
+-		beq	7f
+-		push	{r10}
+-		cfi_adjust_cfa_offset (4)
+-		cfi_rel_offset (r10, 0)
+-0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		/* If alignment is not perfect, then there will be some
+-		   padding (nop) instructions between this BX and label 6.
+-		   The computation above assumed that two instructions
+-		   later is exactly the right spot.  */
+-		add	r10, #(6f - (0b + PC_OFS))
+-		bx	r10
+-#endif
+-		.p2align ARM_BX_ALIGN_LOG2
+-6:		nop
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r3, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r4, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r5, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r6, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r7, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r8, [r1], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	lr, [r1], #4
+-
+-#ifndef ARM_ALWAYS_BX
+-		add	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		nop
+-#else
+-0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		/* If alignment is not perfect, then there will be some
+-		   padding (nop) instructions between this BX and label 66.
+-		   The computation above assumed that two instructions
+-		   later is exactly the right spot.  */
+-		add	r10, #(66f - (0b + PC_OFS))
+-		bx	r10
+-#endif
+-		.p2align ARM_BX_ALIGN_LOG2
+-66:		nop
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r3, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r4, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r5, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r6, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r7, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r8, [r0], #4
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	lr, [r0], #4
+-
+-#ifdef ARM_ALWAYS_BX
+-		pop	{r10}
+-		cfi_adjust_cfa_offset (-4)
+-		cfi_restore (r10)
+-#endif
+-
+-	CALGN(	bcs	2b			)
+-
+-7:		pop	{r5 - r8}
+-		cfi_adjust_cfa_offset (-16)
+-		cfi_restore (r5)
+-		cfi_restore (r6)
+-		cfi_restore (r7)
+-		cfi_restore (r8)
+-
+-8:		movs	r2, r2, lsl #31
+-		ldrbne	r3, [r1], #1
+-		ldrbcs	r4, [r1], #1
+-		ldrbcs	ip, [r1]
+-		strbne	r3, [r0], #1
+-		strbcs	r4, [r0], #1
+-		strbcs	ip, [r0]
+-
+-#if ((defined (__ARM_ARCH_4T__) && defined(__THUMB_INTERWORK__)) \
+-     || defined (ARM_ALWAYS_BX))
+-		pop	{r0, r4, lr}
+-		cfi_adjust_cfa_offset (-12)
+-		cfi_restore (r4)
+-		cfi_restore (lr)
+-		bx      lr
+-#else
+-		pop	{r0, r4, pc}
+-#endif
+-
+-		cfi_restore_state
+-
+-9:		rsb	ip, ip, #4
+-		cmp	ip, #2
+-		ldrbgt	r3, [r1], #1
+-		ldrbge	r4, [r1], #1
+-		ldrb	lr, [r1], #1
+-		strbgt	r3, [r0], #1
+-		strbge	r4, [r0], #1
+-		subs	r2, r2, ip
+-		strb	lr, [r0], #1
+-		blt	8b
+-		ands	ip, r1, #3
+-		beq	1b
+-
+-10:		bic	r1, r1, #3
+-		cmp	ip, #2
+-		ldr	lr, [r1], #4
+-		beq	17f
+-		bgt	18f
+-
+-
+-		.macro	forward_copy_shift pull push
+-
+-		subs	r2, r2, #28
+-		blt	14f
+-
+-	CALGN(	ands	ip, r1, #31		)
+-	CALGN(	rsb	ip, ip, #32		)
+-	CALGN(	sbcsne	r4, ip, r2		)  @ C is always set here
+-	CALGN(	subcc	r2, r2, ip		)
+-	CALGN(	bcc	15f			)
+-
+-11:		push	{r5 - r8, r10}
+-		cfi_adjust_cfa_offset (20)
+-		cfi_rel_offset (r5, 0)
+-		cfi_rel_offset (r6, 4)
+-		cfi_rel_offset (r7, 8)
+-		cfi_rel_offset (r8, 12)
+-		cfi_rel_offset (r10, 16)
+-
+-	PLD(	pld	[r1, #0]		)
+-	PLD(	subs	r2, r2, #96		)
+-	PLD(	pld	[r1, #28]		)
+-	PLD(	blt	13f			)
+-	PLD(	pld	[r1, #60]		)
+-	PLD(	pld	[r1, #92]		)
+-
+-12:	PLD(	pld	[r1, #124]		)
+-13:		ldmia	r1!, {r4, r5, r6, r7}
+-		mov	r3, lr, PULL #\pull
+-		subs	r2, r2, #32
+-		ldmia	r1!, {r8, r10, ip, lr}
+-		orr	r3, r3, r4, PUSH #\push
+-		mov	r4, r4, PULL #\pull
+-		orr	r4, r4, r5, PUSH #\push
+-		mov	r5, r5, PULL #\pull
+-		orr	r5, r5, r6, PUSH #\push
+-		mov	r6, r6, PULL #\pull
+-		orr	r6, r6, r7, PUSH #\push
+-		mov	r7, r7, PULL #\pull
+-		orr	r7, r7, r8, PUSH #\push
+-		mov	r8, r8, PULL #\pull
+-		orr	r8, r8, r10, PUSH #\push
+-		mov	r10, r10, PULL #\pull
+-		orr	r10, r10, ip, PUSH #\push
+-		mov	ip, ip, PULL #\pull
+-		orr	ip, ip, lr, PUSH #\push
+-		stmia	r0!, {r3, r4, r5, r6, r7, r8, r10, ip}
+-		bge	12b
+-	PLD(	cmn	r2, #96			)
+-	PLD(	bge	13b			)
+-
+-		pop	{r5 - r8, r10}
+-		cfi_adjust_cfa_offset (-20)
+-		cfi_restore (r5)
+-		cfi_restore (r6)
+-		cfi_restore (r7)
+-		cfi_restore (r8)
+-		cfi_restore (r10)
+-
+-14:		ands	ip, r2, #28
+-		beq	16f
+-
+-15:		mov	r3, lr, PULL #\pull
+-		ldr	lr, [r1], #4
+-		subs	ip, ip, #4
+-		orr	r3, r3, lr, PUSH #\push
+-		str	r3, [r0], #4
+-		bgt	15b
+-	CALGN(	cmp	r2, #0			)
+-	CALGN(	bge	11b			)
+-
+-16:		sub	r1, r1, #(\push / 8)
+-		b	8b
+-
+-		.endm
+-
+-
+-		forward_copy_shift	pull=8	push=24
+-
+-17:		forward_copy_shift	pull=16	push=16
+-
+-18:		forward_copy_shift	pull=24	push=8
+-
+-END(memcpy)
+-libc_hidden_builtin_def (memcpy)
+diff --git a/sysdeps/arm/memmove.S b/sysdeps/arm/memmove.S
+deleted file mode 100644
+index 74d30420..00000000
+--- a/sysdeps/arm/memmove.S
++++ /dev/null
+@@ -1,336 +0,0 @@
+-/* Copyright (C) 2006-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   Contributed by MontaVista Software, Inc. (written by Nicolas Pitre)
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* Thumb requires excessive IT insns here.  */
+-#define NO_THUMB
+-#include <sysdep.h>
+-#include <arm-features.h>
+-
+-/*
+- * Data preload for architectures that support it (ARM V5TE and above)
+- */
+-#if (!defined (__ARM_ARCH_2__) && !defined (__ARM_ARCH_3__) \
+-     && !defined (__ARM_ARCH_3M__) && !defined (__ARM_ARCH_4__) \
+-     && !defined (__ARM_ARCH_4T__) && !defined (__ARM_ARCH_5__) \
+-     && !defined (__ARM_ARCH_5T__))
+-#define PLD(code...)    code
+-#else
+-#define PLD(code...)
+-#endif
+-
+-/*
+- * This can be used to enable code to cacheline align the source pointer.
+- * Experiments on tested architectures (StrongARM and XScale) didn't show
+- * this a worthwhile thing to do.  That might be different in the future.
+- */
+-//#define CALGN(code...)        code
+-#define CALGN(code...)
+-
+-/*
+- * Endian independent macros for shifting bytes within registers.
+- */
+-#ifndef __ARMEB__
+-#define PULL            lsr
+-#define PUSH            lsl
+-#else
+-#define PULL            lsl
+-#define PUSH            lsr
+-#endif
+-
+-		.text
+-		.syntax unified
+-
+-/*
+- * Prototype: void *memmove(void *dest, const void *src, size_t n);
+- *
+- * Note:
+- *
+- * If the memory regions don't overlap, we simply branch to memcpy which is
+- * normally a bit faster. Otherwise the copy is done going downwards.
+- */
+-
+-ENTRY(memmove)
+-
+-		subs	ip, r0, r1
+-		cmphi	r2, ip
+-#if !IS_IN (libc)
+-		bls	memcpy
+-#else
+-		bls	HIDDEN_JUMPTARGET(memcpy)
+-#endif
+-
+-		push	{r0, r4, lr}
+-		cfi_adjust_cfa_offset (12)
+-		cfi_rel_offset (r4, 4)
+-		cfi_rel_offset (lr, 8)
+-
+-		cfi_remember_state
+-
+-		add	r1, r1, r2
+-		add	r0, r0, r2
+-		subs	r2, r2, #4
+-		blt	8f
+-		ands	ip, r0, #3
+-	PLD(	pld	[r1, #-4]		)
+-		bne	9f
+-		ands	ip, r1, #3
+-		bne	10f
+-
+-1:		subs	r2, r2, #(28)
+-		push	{r5 - r8}
+-		cfi_adjust_cfa_offset (16)
+-		cfi_rel_offset (r5, 0)
+-		cfi_rel_offset (r6, 4)
+-		cfi_rel_offset (r7, 8)
+-		cfi_rel_offset (r8, 12)
+-		blt	5f
+-
+-	CALGN(	ands	ip, r1, #31		)
+-	CALGN(	sbcsne	r4, ip, r2		)  @ C is always set here
+-	CALGN(	bcs	2f			)
+-	CALGN(	adr	r4, 6f			)
+-	CALGN(	subs	r2, r2, ip		)  @ C is set here
+-#ifndef ARM_ALWAYS_BX
+-	CALGN(	add	pc, r4, ip, lsl	#(ARM_BX_ALIGN_LOG2 - 2))
+-#else
+-	CALGN(	add	r4, r4, ip, lsl	#(ARM_BX_ALIGN_LOG2 - 2))
+-	CALGN(	bx	r4			)
+-#endif
+-
+-	PLD(	pld	[r1, #-4]		)
+-2:	PLD(	subs	r2, r2, #96		)
+-	PLD(	pld	[r1, #-32]		)
+-	PLD(	blt	4f			)
+-	PLD(	pld	[r1, #-64]		)
+-	PLD(	pld	[r1, #-96]		)
+-
+-3:	PLD(	pld	[r1, #-128]		)
+-4:		ldmdb	r1!, {r3, r4, r5, r6, r7, r8, ip, lr}
+-		subs	r2, r2, #32
+-		stmdb	r0!, {r3, r4, r5, r6, r7, r8, ip, lr}
+-		bge	3b
+-	PLD(	cmn	r2, #96			)
+-	PLD(	bge	4b			)
+-
+-5:		ands	ip, r2, #28
+-		rsb	ip, ip, #32
+-#ifndef ARM_ALWAYS_BX
+-		/* C is always clear here.  */
+-		addne	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		b	7f
+-#else
+-		beq	7f
+-		push	{r10}
+-		cfi_adjust_cfa_offset (4)
+-		cfi_rel_offset (r10, 0)
+-0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		/* If alignment is not perfect, then there will be some
+-		   padding (nop) instructions between this BX and label 6.
+-		   The computation above assumed that two instructions
+-		   later is exactly the right spot.  */
+-		add	r10, #(6f - (0b + PC_OFS))
+-		bx	r10
+-#endif
+-		.p2align ARM_BX_ALIGN_LOG2
+-6:		nop
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r3, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r4, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r5, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r6, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r7, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	r8, [r1, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		ldr	lr, [r1, #-4]!
+-
+-#ifndef ARM_ALWAYS_BX
+-		add	pc, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		nop
+-#else
+-0:		add	r10, pc, ip, lsl #(ARM_BX_ALIGN_LOG2 - 2)
+-		/* If alignment is not perfect, then there will be some
+-		   padding (nop) instructions between this BX and label 66.
+-		   The computation above assumed that two instructions
+-		   later is exactly the right spot.  */
+-		add	r10, #(66f - (0b + PC_OFS))
+-		bx	r10
+-#endif
+-		.p2align ARM_BX_ALIGN_LOG2
+-66:		nop
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r3, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r4, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r5, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r6, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r7, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	r8, [r0, #-4]!
+-		.p2align ARM_BX_ALIGN_LOG2
+-		str	lr, [r0, #-4]!
+-
+-#ifdef ARM_ALWAYS_BX
+-		pop	{r10}
+-		cfi_adjust_cfa_offset (-4)
+-		cfi_restore (r10)
+-#endif
+-
+-	CALGN(	bcs	2b			)
+-
+-7:		pop	{r5 - r8}
+-		cfi_adjust_cfa_offset (-16)
+-		cfi_restore (r5)
+-		cfi_restore (r6)
+-		cfi_restore (r7)
+-		cfi_restore (r8)
+-
+-8:		movs	r2, r2, lsl #31
+-		ldrbne	r3, [r1, #-1]!
+-		ldrbcs	r4, [r1, #-1]!
+-		ldrbcs	ip, [r1, #-1]
+-		strbne	r3, [r0, #-1]!
+-		strbcs	r4, [r0, #-1]!
+-		strbcs	ip, [r0, #-1]
+-
+-#if ((defined (__ARM_ARCH_4T__) && defined (__THUMB_INTERWORK__)) \
+-     || defined (ARM_ALWAYS_BX))
+-		pop	{r0, r4, lr}
+-		cfi_adjust_cfa_offset (-12)
+-		cfi_restore (r4)
+-		cfi_restore (lr)
+-		bx      lr
+-#else
+-		pop	{r0, r4, pc}
+-#endif
+-
+-		cfi_restore_state
+-
+-9:		cmp	ip, #2
+-		ldrbgt	r3, [r1, #-1]!
+-		ldrbge	r4, [r1, #-1]!
+-		ldrb	lr, [r1, #-1]!
+-		strbgt	r3, [r0, #-1]!
+-		strbge	r4, [r0, #-1]!
+-		subs	r2, r2, ip
+-		strb	lr, [r0, #-1]!
+-		blt	8b
+-		ands	ip, r1, #3
+-		beq	1b
+-
+-10:		bic	r1, r1, #3
+-		cmp	ip, #2
+-		ldr	r3, [r1, #0]
+-		beq	17f
+-		blt	18f
+-
+-
+-		.macro	backward_copy_shift push pull
+-
+-		subs	r2, r2, #28
+-		blt	14f
+-
+-	CALGN(	ands	ip, r1, #31		)
+-	CALGN(	rsb	ip, ip, #32		)
+-	CALGN(	sbcsne	r4, ip, r2		)  @ C is always set here
+-	CALGN(	subcc	r2, r2, ip		)
+-	CALGN(	bcc	15f			)
+-
+-11:		push	{r5 - r8, r10}
+-		cfi_adjust_cfa_offset (20)
+-		cfi_rel_offset (r5, 0)
+-		cfi_rel_offset (r6, 4)
+-		cfi_rel_offset (r7, 8)
+-		cfi_rel_offset (r8, 12)
+-		cfi_rel_offset (r10, 16)
+-
+-	PLD(	pld	[r1, #-4]		)
+-	PLD(	subs	r2, r2, #96		)
+-	PLD(	pld	[r1, #-32]		)
+-	PLD(	blt	13f			)
+-	PLD(	pld	[r1, #-64]		)
+-	PLD(	pld	[r1, #-96]		)
+-
+-12:	PLD(	pld	[r1, #-128]		)
+-13:		ldmdb   r1!, {r7, r8, r10, ip}
+-		mov     lr, r3, PUSH #\push
+-		subs    r2, r2, #32
+-		ldmdb   r1!, {r3, r4, r5, r6}
+-		orr     lr, lr, ip, PULL #\pull
+-		mov     ip, ip, PUSH #\push
+-		orr     ip, ip, r10, PULL #\pull
+-		mov     r10, r10, PUSH #\push
+-		orr     r10, r10, r8, PULL #\pull
+-		mov     r8, r8, PUSH #\push
+-		orr     r8, r8, r7, PULL #\pull
+-		mov     r7, r7, PUSH #\push
+-		orr     r7, r7, r6, PULL #\pull
+-		mov     r6, r6, PUSH #\push
+-		orr     r6, r6, r5, PULL #\pull
+-		mov     r5, r5, PUSH #\push
+-		orr     r5, r5, r4, PULL #\pull
+-		mov     r4, r4, PUSH #\push
+-		orr     r4, r4, r3, PULL #\pull
+-		stmdb   r0!, {r4 - r8, r10, ip, lr}
+-		bge	12b
+-	PLD(	cmn	r2, #96			)
+-	PLD(	bge	13b			)
+-
+-		pop	{r5 - r8, r10}
+-		cfi_adjust_cfa_offset (-20)
+-		cfi_restore (r5)
+-		cfi_restore (r6)
+-		cfi_restore (r7)
+-		cfi_restore (r8)
+-		cfi_restore (r10)
+-
+-14:		ands	ip, r2, #28
+-		beq	16f
+-
+-15:		mov     lr, r3, PUSH #\push
+-		ldr	r3, [r1, #-4]!
+-		subs	ip, ip, #4
+-		orr	lr, lr, r3, PULL #\pull
+-		str	lr, [r0, #-4]!
+-		bgt	15b
+-	CALGN(	cmp	r2, #0			)
+-	CALGN(	bge	11b			)
+-
+-16:		add	r1, r1, #(\pull / 8)
+-		b	8b
+-
+-		.endm
+-
+-
+-		backward_copy_shift	push=8	pull=24
+-
+-17:		backward_copy_shift	push=16	pull=16
+-
+-18:		backward_copy_shift	push=24	pull=8
+-
+-
+-END(memmove)
+-libc_hidden_builtin_def (memmove)
+diff --git a/sysdeps/arm/memset.S b/sysdeps/arm/memset.S
+deleted file mode 100644
+index 6ab173cc..00000000
+--- a/sysdeps/arm/memset.S
++++ /dev/null
+@@ -1,69 +0,0 @@
+-/* Copyright (C) 1998-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Philip Blundell <philb@gnu.org>
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* Thumb requires excessive IT insns here.  */
+-#define NO_THUMB
+-#include <sysdep.h>
+-
+-	.text
+-	.syntax unified
+-
+-/* void *memset (dstpp, c, len) */
+-
+-ENTRY(memset)
+-	mov	r3, r0
+-	cmp	r2, #8
+-	bcc	2f		@ less than 8 bytes to move
+-
+-1:
+-	tst	r3, #3		@ aligned yet?
+-	strbne	r1, [r3], #1
+-	subne	r2, r2, #1
+-	bne	1b
+-
+-	and	r1, r1, #255	@ clear any sign bits
+-	orr	r1, r1, r1, lsl $8
+-	orr	r1, r1, r1, lsl $16
+-	mov	ip, r1
+-
+-1:
+-	subs	r2, r2, #8
+-	stmiacs	r3!, {r1, ip}	@ store up to 32 bytes per loop iteration
+-	subscs	r2, r2, #8
+-	stmiacs	r3!, {r1, ip}
+-	subscs	r2, r2, #8
+-	stmiacs	r3!, {r1, ip}
+-	subscs	r2, r2, #8
+-	stmiacs	r3!, {r1, ip}
+-	bcs	1b
+-
+-	and	r2, r2, #7
+-2:
+-	subs	r2, r2, #1	@ store up to 4 bytes per loop iteration
+-	strbcs	r1, [r3], #1
+-	subscs	r2, r2, #1
+-	strbcs	r1, [r3], #1
+-	subscs	r2, r2, #1
+-	strbcs	r1, [r3], #1
+-	subscs	r2, r2, #1
+-	strbcs	r1, [r3], #1
+-	bcs	2b
+-
+-	DO_RET(lr)
+-END(memset)
+-libc_hidden_builtin_def (memset)
+diff --git a/sysdeps/arm/strlen.S b/sysdeps/arm/strlen.S
+deleted file mode 100644
+index 382d1d24..00000000
+--- a/sysdeps/arm/strlen.S
++++ /dev/null
+@@ -1,77 +0,0 @@
+-/* Copyright (C) 1998-2018 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Code contributed by Matthew Wilcox <willy@odie.barnet.ac.uk>
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-/* Thumb requires excessive IT insns here.  */
+-#define NO_THUMB
+-#include <sysdep.h>
+-
+-/* size_t strlen(const char *S)
+- * entry: r0 -> string
+- * exit: r0 = len
+- */
+-
+-	.syntax unified
+-	.text
+-
+-ENTRY(strlen)
+-	bic     r1, r0, $3              @ addr of word containing first byte
+-	ldr     r2, [r1], $4            @ get the first word
+-	ands    r3, r0, $3              @ how many bytes are duff?
+-	rsb     r0, r3, $0              @ get - that number into counter.
+-	beq     Laligned                @ skip into main check routine if no
+-					@ more
+-#ifdef __ARMEB__
+-	orr     r2, r2, $0xff000000     @ set this byte to non-zero
+-	subs    r3, r3, $1              @ any more to do?
+-	orrgt   r2, r2, $0x00ff0000     @ if so, set this byte
+-	subs    r3, r3, $1              @ more?
+-	orrgt   r2, r2, $0x0000ff00     @ then set.
+-#else
+-	orr     r2, r2, $0x000000ff     @ set this byte to non-zero
+-	subs    r3, r3, $1              @ any more to do?
+-	orrgt   r2, r2, $0x0000ff00     @ if so, set this byte
+-	subs    r3, r3, $1              @ more?
+-	orrgt   r2, r2, $0x00ff0000     @ then set.
+-#endif
+-Laligned:				@ here, we have a word in r2.  Does it
+-	tst     r2, $0x000000ff         @ contain any zeroes?
+-	tstne   r2, $0x0000ff00         @
+-	tstne   r2, $0x00ff0000         @
+-	tstne   r2, $0xff000000         @
+-	addne   r0, r0, $4              @ if not, the string is 4 bytes longer
+-	ldrne   r2, [r1], $4            @ and we continue to the next word
+-	bne     Laligned                @
+-Llastword:				@ drop through to here once we find a
+-#ifdef __ARMEB__
+-	tst     r2, $0xff000000         @ word that has a zero byte in it
+-	addne   r0, r0, $1              @
+-	tstne   r2, $0x00ff0000         @ and add up to 3 bytes on to it
+-	addne   r0, r0, $1              @
+-	tstne   r2, $0x0000ff00         @ (if first three all non-zero, 4th
+-	addne   r0, r0, $1              @  must be zero)
+-#else
+-	tst     r2, $0x000000ff         @ word that has a zero byte in it
+-	addne   r0, r0, $1              @
+-	tstne   r2, $0x0000ff00         @ and add up to 3 bytes on to it
+-	addne   r0, r0, $1              @
+-	tstne   r2, $0x00ff0000         @ (if first three all non-zero, 4th
+-	addne   r0, r0, $1              @  must be zero)
+-#endif
+-	DO_RET(lr)
+-END(strlen)
+-libc_hidden_builtin_def (strlen)
