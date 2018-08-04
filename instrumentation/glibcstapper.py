@@ -9,6 +9,9 @@ import logging as log
 
 import pycparser
 
+MARKER = "/* STAPPED */\n"
+STAP_HEADER = "#include <stap-probe.h>\n"
+
 CPP_OPTS = [
                 "-Ifake_libc_include",
                 # "-I..",
@@ -64,8 +67,46 @@ def extract_cprotos(cfile, func):
 def add_probe(file, cproto):
     log.info("Instrumenting %s in %s" % (cproto.realfunc, file))
 
+    fcontent = [ line for line in open(file, "r")]
+    if fcontent[0] == MARKER:
+        log.warning("File %s already instrumented" % file)
+        return
+
+    fcontent.insert(0, MARKER)
+    fcontent.insert(1, STAP_HEADER)
+
+    probe = "LIBC_PROBE( %s, %d" % (cproto.realfunc, len(cproto.args))
+    for arg in cproto.args:
+        probe += ", %s" % arg
+    probe += " )\n"
+
+    for i in range(len(fcontent)-1):
+        if cproto.realfunc + " (" in fcontent[i].lower() and fcontent[i+1].strip() == "{":
+            fcontent.insert(i+2, probe)
+            break
+
+    sys.stdout.writelines(fcontent)
+    exit(1)
+
 def del_probe(file, cproto):
     log.info("Cleaning %s in %s" % (cproto.realfunc, file))
+    
+    fcontent = [ line for line in open(file, "r")]
+    if fcontent[0] != MARKER:
+        log.warning("File %s not instrumented" % file)
+        return
+    
+    del fcontent[0]
+    if fcontent[0] == STAP_HEADER:
+        del fcontent[0]
+
+    for i in range(len(fcontent)):
+        if "LIBC_PROBE" in fcontent[i]:
+            del fcontent[i]
+            break
+    
+    sys.stdout.writelines(fcontent)
+    exit(1)
 
 ADD_PROBE = 1
 DEL_PROBE = 2
