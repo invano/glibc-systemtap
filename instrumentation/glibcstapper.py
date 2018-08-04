@@ -35,11 +35,18 @@ CPP_OPTS = [
                 # "-I..",
                 # "-I../include",
                 # "-I../sysdeps/generic",
+                "-D__attribute__(x)=",
                 "-Dlibc_hidden_builtin_def(x)=",
                 "-Dlibc_hidden_def(x)=",
                 "-Dweak_alias(x, y)=",
-                "-D_LIBC=",
+                "-Dstrong_alias(x, y)=",
+                "-Dinhibit_loop_to_libcall=",
+                "-Dlibc_hidden_weak(x)=",
+                "-D__THROW="
            ]
+
+ERR_CPP = ["strdup"]
+ERR_CPP_OPTS = CPP_OPTS + ["-D_LIBC"]
 
 class FunctionParameter(pycparser.c_ast.NodeVisitor):
 
@@ -51,7 +58,10 @@ class FunctionParameter(pycparser.c_ast.NodeVisitor):
 
 def instrument(cfile, func):
     print ("Analyzing %s" % cfile)
-    ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=CPP_OPTS)
+    if func not in ERR_CPP:
+        ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=CPP_OPTS)
+    else:
+        ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=ERR_CPP_OPTS)
 
     vf = FunctionParameter()
     vf.visit(ast)
