@@ -51,15 +51,13 @@ class FunctionParameter(pycparser.c_ast.NodeVisitor):
         CPROTOS[self.func] = CProto(self.file, self.func, name, args)
         log.info(CPROTOS[self.func])
 
-def instrument(cfile, func, wantedfunc):
+def extract_cprotos(cfile, func):
     log.info("Analyzing %s" % cfile)
     if func not in ERR_CPP:
         ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=CPP_OPTS)
     else:
         ast = pycparser.parse_file(cfile, use_cpp=True, cpp_args=ERR_CPP_OPTS)
 
-    if wantedfunc != 'y':
-        func = wantedfunc
     vf = FunctionParameter(cfile, func)
     vf.visit(ast)
     
@@ -72,7 +70,10 @@ def main(config):
         if not os.path.isfile(cfile):
             print("%s not found!" % cfile)
             continue
-        instrument(cfile, func, wantedfunc)
+        if wantedfunc != "y":
+            func = wantedfunc
+        extract_cprotos(cfile, func)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Libcstapper - systemtap uprobes instrumentation")
