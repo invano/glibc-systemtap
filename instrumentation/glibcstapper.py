@@ -61,7 +61,16 @@ def extract_cprotos(cfile, func):
     vf = FunctionParameter(cfile, func)
     vf.visit(ast)
     
-def main(config):
+def add_probe(file, cproto):
+    log.info("Instrumenting %s in %s" % (cproto.realfunc, file))
+
+def del_probe(file, cproto):
+    log.info("Cleaning %s in %s" % (cproto.realfunc, file))
+
+ADD_PROBE = 1
+DEL_PROBE = 2
+
+def main(config, action):
 
     folders = config.sections()
     instr = [("../%s/%s.c" % (folder, file), file, config.get(folder, file)) for folder in folders for file in config.options(folder)]
@@ -73,12 +82,16 @@ def main(config):
         if wantedfunc != "y":
             func = wantedfunc
         extract_cprotos(cfile, func)
-
+        if action == ADD_PROBE:
+            add_probe(cfile, CPROTOS[func])
+        elif action == DEL_PROBE:
+            del_probe(cfile, CPROTOS[func])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Libcstapper - systemtap uprobes instrumentation")
     parser.add_argument("-c", "--config", nargs=1, type=str, help="Configuration file with list of functions to instrument")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("-r", "--remove", action="store_true", help="Remove instrumentation")
     args = parser.parse_args()
     
     if args.verbose:
@@ -96,5 +109,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(config_file)
 
-    main(config)
+    if args.remove:
+        main(config, DEL_PROBE)
+    else:
+        main(config, ADD_PROBE)
+
 
