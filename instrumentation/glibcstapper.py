@@ -81,7 +81,7 @@ def add_probe(file, cproto):
     probe = "LIBC_PROBE( %s, %d" % (cproto.func, len(cproto.args))
     for arg in cproto.args:
         probe += ", %s" % arg
-    probe += " )\n"
+    probe += " );\n"
 
     for i in range(len(fcontent)-1):
         if cproto.realfunc + " (" in fcontent[i].lower() or cproto.func+" (" in fcontent[i].lower():
