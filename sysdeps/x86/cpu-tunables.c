@@ -28,16 +28,8 @@
 
 /* We can't use IFUNC memcmp nor strlen in init_cpu_features from libc.a
    since IFUNC must be set up by init_cpu_features.  */
-# if defined USE_MULTIARCH && !defined SHARED
-#  ifdef __x86_64__
-#   define DEFAULT_MEMCMP	__memcmp_sse2
-#  else
-#   define DEFAULT_MEMCMP	__memcmp_ia32
-#  endif
 extern __typeof (memcmp) DEFAULT_MEMCMP;
-# else
 #  define DEFAULT_MEMCMP	memcmp
-# endif
 
 # define CHECK_GLIBC_IFUNC_CPU_OFF(f, cpu_features, name, len)		\
   _Static_assert (sizeof (#name) - 1 == len, #name " != " #len);	\
